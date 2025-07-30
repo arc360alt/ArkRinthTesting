@@ -70,7 +70,7 @@ jobs:
 
       - name: ⚙️ Grant execute permissions to gradlew
         if: startsWith(matrix.platform, 'ubuntu') || startsWith(matrix.platform, 'macos')
-        run: chmod +x ./java/gradlew # Corrected path for gradlew
+        run: chmod +x ./packages/app-lib/java/gradlew # Corrected path for gradlew
 
       - name: 🧰 Setup Dasel
         uses: jaxxstorm/action-install-gh-release@v2.1.0
