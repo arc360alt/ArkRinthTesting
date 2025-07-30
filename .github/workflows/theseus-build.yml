@@ -1,4 +1,4 @@
-name: ArkRinth build
+name: ArkRinth buil
 on:
   push:
     branches:
