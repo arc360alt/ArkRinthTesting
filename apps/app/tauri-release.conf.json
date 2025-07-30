@@ -1,4 +1,10 @@
 {
+  "$schema": "../node_modules/@tauri-apps/cli/schemas/2.0.0/tauri.schema.json",
+  "build": {
+    "frontendDist": "../app-frontend/dist",
+    "beforeBuildCommand": "pnpm --filter=@modrinth/app-frontend run build",
+    "beforeDevCommand": "pnpm --filter=@modrinth/app-frontend run dev"
+  },
   "bundle": {
     "active": true,
     "targets": "all",
@@ -11,31 +17,24 @@
       "icons/icon.ico"
     ],
     "windows": {
-      "webviewFixedRuntimePath": null,
-      "webviewFixedRuntimeVersion": null,
       "nsis": {
-        "installerIcon": "icons/icon.ico",
-        "headerImage": "icons/banner.bmp",
-        "allowDowngrades": true,
-        "languages": ["en-US"],
-        "logDependencies": true
+        "installMode": "perMachine",
+        "allowDowngrades": true
       }
+    },
+    "externalBin": [],
+    "resources": [],
+    "copyright": "Copyright (c) 2025 Arc Rinth",
+    "category": "DeveloperTool",
+    "shortDescription": "A Modrinth client",
+    "longDescription": "A modern Modrinth client built with Tauri.",
+    "deb": {
+      "depends": []
+    },
+    "macOS": {
+      "exceptionDomain": "",
+      "signingIdentity": null,
+      "entitlements": null
     }
-  },
-  "build": {
-    "distDir": "../app-frontend/dist",
-    "devPath": "../app-frontend/dist",
-    "beforeBuildCommand": "pnpm --filter=@modrinth/app-frontend run build",
-    "beforeDevCommand": "pnpm --filter=@modrinth/app-frontend run dev",
-    "features": []
-  },
-  "app": {
-    "security": {
-      "capabilities": [
-        "core",
-        "plugins"
-      ]
-    }
-  },
-  "plugins": {}
+  }
 }
