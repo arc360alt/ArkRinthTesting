@@ -43,8 +43,8 @@ jobs:
       - name: 🧰 Setup Java for Gradle
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin' # Or 'adopt', 'zulu', etc.
-          java-version: '17'    # Or the Java version your Gradle build requires (e.g., '11', '21')
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: 🧰 Setup Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -70,7 +70,7 @@ jobs:
 
       - name: ⚙️ Grant execute permissions to gradlew
         if: startsWith(matrix.platform, 'ubuntu') || startsWith(matrix.platform, 'macos')
-        run: chmod +x ./gradlew
+        run: chmod +x ./java/gradlew # Corrected path for gradlew
 
       - name: 🧰 Setup Dasel
         uses: jaxxstorm/action-install-gh-release@v2.1.0
