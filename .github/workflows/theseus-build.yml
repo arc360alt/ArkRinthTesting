@@ -143,4 +143,4 @@ jobs:
             target/universal-apple-darwin/release/bundle/macos/ArkRinth_.app.tar.gz*
             target/universal-apple-darwin/release/bundle/dmg/ArkRinth_*.dmg*
             target/release/bundle/nsis/ArkRinth_*-setup.exe*
-            target/release/bundle/nsis/ArkRinth_*-setup.nsis.zip*
+            target/release/bundle/nsis/ArkRinth_*-setup.nsis.zip*\
