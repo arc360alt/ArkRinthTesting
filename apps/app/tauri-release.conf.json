@@ -22,12 +22,6 @@
         "allowDowngrades": true
       }
     },
-    "externalBin": [],
-    "resources": [],
-    "copyright": "Copyright (c) 2025 Arc Rinth",
-    "category": "DeveloperTool",
-    "shortDescription": "A Modrinth client",
-    "longDescription": "A modern Modrinth client built with Tauri.",
     "deb": {
       "depends": []
     },
@@ -35,6 +29,12 @@
       "exceptionDomain": "",
       "signingIdentity": null,
       "entitlements": null
-    }
+    },
+    "externalBin": [],
+    "resources": [],
+    "copyright": "Copyright (c) 2025 Arc Rinth",
+    "category": "DeveloperTool",
+    "shortDescription": "A Modrinth client",
+    "longDescription": "A modern Modrinth client built with Tauri."
   }
 }
