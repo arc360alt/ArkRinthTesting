@@ -26,6 +26,11 @@
         "depends": []
       }
     },
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    },
     "macOS": {
       "exceptionDomain": "",
       "signingIdentity": null,
