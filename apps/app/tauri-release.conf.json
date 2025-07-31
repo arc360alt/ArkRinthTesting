@@ -19,9 +19,7 @@
     ],
     "windows": {
       "nsis": {
-        "installMode": "perMachine",
-        "allowDowngrades": true,
-        "installerHooks": "./nsis/hooks.nsi"
+        "installMode": "perMachine"
       }
     },
     "linux": {
