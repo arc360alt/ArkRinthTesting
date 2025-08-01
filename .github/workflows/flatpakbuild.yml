@@ -16,10 +16,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Flatpak
+      - name: Install Flatpak and dasel
         run: |
           sudo apt update
-          sudo apt install -y flatpak flatpak-builder
+          sudo apt install -y flatpak flatpak-builder curl
+          # Install dasel (latest stable)
+          curl -sL https://github.com/TomWright/dasel/releases/latest/download/dasel_linux_amd64 -o dasel
+          sudo install dasel /usr/local/bin/dasel
+          dasel --version
 
       - name: Add Flathub repo (user mode)
         run: |
@@ -39,6 +43,6 @@ jobs:
         run: |
           flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
 
-      - name: Show Flatpak repo contents
+      - name: Build bundle
         run: |
           flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
