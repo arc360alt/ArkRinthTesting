@@ -1,27 +1,40 @@
 app-id: org.arkrinth.ArkRinth
 runtime: org.freedesktop.Platform
-runtime-version: "23.08"
+runtime-version: '23.08'
 sdk: org.freedesktop.Sdk
-command: arkrinth
-finish-args:
-  - --share=network
-  - --filesystem=home
-  - --socket=wayland
-  - --socket=x11
-  - --device=dri
+command: theseus-gui
 modules:
   - name: rust-stable
     buildsystem: simple
     build-commands:
       - mkdir -p /app/bin
       - ln -s /usr/bin/cargo /app/bin/
-    sources: []
+    sources:
+      - type: archive
+        url: https://github.com/rust-lang/rust/archive/refs/tags/1.73.0.tar.gz
+        sha256: <your-sha256-here>
 
   - name: ArkRinth
-    buildsystem: simple
+    buildsystem: cargo
+    build-options:
+      env:
+        CARGO_HOME: /app/.cargo
     build-commands:
       - cargo build --release
-      - install -Dm755 target/release/arkrinth /app/bin/arkrinth
     sources:
-      - type: dir
+      - type: git
+        url: https://github.com/arc360alt/ArkRinthTesting.git
+        tag: master
+        # Make sure this path matches your repo structure, using root here
         path: .
+    
+build-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+
+finish-args:
+  # Add any necessary permissions here
+  - --share=network
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=home
