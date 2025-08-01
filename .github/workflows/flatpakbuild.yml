@@ -1,35 +1,30 @@
-name: Flatpak CI Build
+name: Build ArkRinth Flatpak
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
 
 jobs:
-  build:
+  build-flatpak:
     runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
+      options: --privileged
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install Flatpak & dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak build-essential
+    - name: Build Flatpak
+      uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: true
+        manifest-path: com.arkrith.ArkRinth.yml
+        cache-key: flatpak-builder-${{ github.sha }}
 
-      - name: Add Flathub remote & node20 extension
-        run: |
-          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y --noninteractive flathub org.freedesktop.Sdk.Extension.node20/23.08
-
-      - name: Build Flatpak
-        run: |
-          flatpak-builder --user --force-clean --install-deps-from=flathub --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
-
-      - name: Create Flatpak bundle
-        run: |
-          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
-
-      - name: Upload Flatpak artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ArkRinth.flatpak
-          path: ArkRinth.flatpak
+    - name: Upload Flatpak
+      uses: actions/upload-artifact@v4
+      with:
+        name: arkrith-flatpak
+        path: "*.flatpak"
