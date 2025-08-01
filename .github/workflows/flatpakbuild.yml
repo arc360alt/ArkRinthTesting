@@ -1,48 +1,51 @@
 name: Flatpak Build
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
-
-env:
-  GH_PAT: ${{ secrets.GH_PAT }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Flatpak and dasel
+      - name: Install Flatpak and dependencies
         run: |
-          sudo apt update
-          sudo apt install -y flatpak flatpak-builder curl
-          # Install dasel (latest stable)
-          curl -sL https://github.com/TomWright/dasel/releases/latest/download/dasel_linux_amd64 -o dasel
-          sudo install dasel /usr/local/bin/dasel
-          dasel --version
+          sudo apt-get update
+          sudo apt-get install -y \
+            flatpak \
+            flatpak-builder \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libegl1-mesa-dev \
+            libgl1-mesa-dev \
+            rpm
 
-      - name: Add Flathub repo (user mode)
+      - name: Add Flathub remote (user mode)
         run: |
-          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || true
 
-      - name: Install Flatpak SDKs
+      - name: Install SDK and extensions (user mode)
         run: |
-          flatpak --user install -y flathub org.freedesktop.Platform//23.08 org.freedesktop.Sdk//23.08
+          flatpak --user --noninteractive install flathub \
+            org.freedesktop.Sdk//23.08 \
+            org.freedesktop.Platform//23.08 \
+            org.freedesktop.Sdk.Extension.rust-stable//23.08 \
+            org.freedesktop.Sdk.Extension.node20//23.08
 
-      - name: Make prepare_version.sh executable
-        run: chmod +x prepare_version.sh
-
-      - name: Prepare version
-        run: ./prepare_version.sh "${GITHUB_SHA}"
-
-      - name: Build Flatpak (user mode)
+      - name: Build Flatpak
         run: |
           flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
-
-      - name: Build bundle
-        run: |
           flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArkRinth.flatpak
+          path: ArkRinth.flatpak
