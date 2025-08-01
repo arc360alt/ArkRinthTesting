@@ -44,3 +44,5 @@ jobs:
         with:
           name: ArkRinth.flatpak
           path: ArkRinth.flatpak
+
+# Comment added to force commit change
