@@ -1,16 +1,27 @@
 app-id: org.arkrinth.ArkRinth
-runtime: org.gnome.Platform
-runtime-version: '45'
-sdk: org.gnome.Sdk
-command: theseus-gui
-
+runtime: org.freedesktop.Platform
+runtime-version: "23.08"
+sdk: org.freedesktop.Sdk
+command: arkrinth
+finish-args:
+  - --share=network
+  - --filesystem=home
+  - --socket=wayland
+  - --socket=x11
+  - --device=dri
 modules:
+  - name: rust-stable
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/bin
+      - ln -s /usr/bin/cargo /app/bin/
+    sources: []
+
   - name: ArkRinth
     buildsystem: simple
     build-commands:
-      - ./packages/app-lib/java/gradlew build
-      - ./prepare_version.sh
-      - cargo build --release --manifest-path=apps/app/Cargo.toml
+      - cargo build --release
+      - install -Dm755 target/release/arkrinth /app/bin/arkrinth
     sources:
       - type: dir
-        path: ArkRinth-src
+        path: .
