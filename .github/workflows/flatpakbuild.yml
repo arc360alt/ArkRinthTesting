@@ -1,44 +1,42 @@
-name: Flatpak Build
+---
+# .github/workflows/build-flatpak.yml
+name: Build Flatpak (Tauri v2)
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
 
-      - name: Install Flatpak dependencies
+      - name: Enable Corepack and Install pnpm
         run: |
-          sudo apt update
-          sudo apt install -y flatpak flatpak-builder nodejs npm libwebkit2gtk-4.1-dev libxdo-dev curl
-          npm install -g pnpm
+          corepack enable
+          corepack prepare pnpm@latest --activate
 
-      - name: Add Flathub
-        run: |
-          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install flatpak and flatpak-builder
+        run: sudo apt update && sudo apt install -y flatpak flatpak-builder
+
+      - name: Add Flathub Remote (User Mode)
+        run: flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
       - name: Build Flatpak
         run: |
           flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
-
-      - name: Export Flatpak Bundle
-        run: |
-          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
-
-      - name: Upload Flatpak artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ArkRinth
-          path: ArkRinth.flatpak
