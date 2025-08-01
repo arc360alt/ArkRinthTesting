@@ -20,7 +20,5 @@ modules:
       - ./prepare_version.sh "${FLATPAK_BUILDER_APP_VERSION}"
       - cargo build --release
     sources:
-      - type: git
-        url: https://x-access-token:${GH_PAT}@github.com/arc360alt/ArkRinthTesting.git
-        tag: master
+      - type: dir
         path: .
