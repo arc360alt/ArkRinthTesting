@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
 
     steps:
       - name: Checkout repository
@@ -23,22 +25,21 @@ jobs:
             patchelf \
             libegl1-mesa-dev \
             libgl1-mesa-dev \
-            rpm \
-            curl
+            rpm
 
-      - name: Add Flathub remote and install SDK + extensions (user mode)
+      - name: Add Flathub remote and install SDK + extensions (system mode)
         run: |
-          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak --user --noninteractive install flathub \
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y --noninteractive flathub \
             org.gnome.Sdk//45 \
             org.gnome.Platform//45 \
             org.freedesktop.Sdk.Extension.rust-stable//23.08 \
             org.freedesktop.Sdk.Extension.node20//23.08
 
-      - name: Build Flatpak (user mode)
+      - name: Build Flatpak
         run: |
-          flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
-          flatpak --user build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
+          flatpak-builder --force-clean --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
 
       - name: Upload Flatpak artifact
         uses: actions/upload-artifact@v4
