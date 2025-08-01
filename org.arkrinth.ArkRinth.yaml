@@ -36,45 +36,31 @@ modules:
       - type: git
         url: .
         commit: HEAD
-    
-    # Dependencies required to build your Tauri app
-    build-options:
-      env:
-        # Set RUSTFLAGS to optimize the build.
-        RUSTFLAGS: "-C strip=debuginfo"
 
-    # Install Rust, Node.js, and other system dependencies.
-    # Note: These are a simplified set of dependencies; you might need to add more.
+    # Dependencies required to build your Tauri app
+    # This array specifies the build-time dependencies that Flatpak will automatically install.
     build-depends:
       - rust
-      - nodejs
+      - nodejs/x86_64/20.0
       - pnpm
-      - libwebkit2gtk-4.1-dev
-      - libayatana-appindicator3-dev
-      - librsvg2-dev
-      - libegl1-mesa-dev
-      - libgl1-mesa-dev
 
     # The actual build commands to compile the Tauri app
     build-commands:
-      # You may need to grant execute permissions here as well
-      - chmod +x ./packages/app-lib/java/gradlew
-
-      # Install dependencies using pnpm
-      - pnpm install
-
       # Use Dasel to set the version number from the commit hash
       - dasel put -f apps/app/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
       - dasel put -f packages/app-lib/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
       - dasel put -f apps/app-frontend/package.json -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'version'
 
+      # Grant execute permissions to gradlew
+      - chmod +x ./packages/app-lib/java/gradlew
+
+      # Install dependencies using pnpm
+      - pnpm install
+
       # Build the application with Tauri's bundler for Flatpak
       - pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json --bundles "flatpak"
-      
-    # This command is for installing the final application and its desktop file
-    # This may need to be adjusted based on the output of your Tauri build
-    install-commands:
-      - install -Dm755 target/release/ArkRinth ${FLATPAK_DEST}/bin/ArkRinth
+
+      # These commands install the final application, desktop file, and icon to the Flatpak destination
+      - install -Dm755 target/release/bundle/flatpak/ArkRinth ${FLATPAK_DEST}/bin/ArkRinth
       - install -Dm644 apps/app/resources/org.arkrinth.ArkRinth.desktop ${FLATPAK_DEST}/share/applications/org.arkrinth.ArkRinth.desktop
       - install -Dm644 apps/app/resources/icons/icon.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/org.arkrinth.ArkRinth.png
-
