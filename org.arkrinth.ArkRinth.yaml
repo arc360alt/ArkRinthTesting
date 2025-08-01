@@ -11,25 +11,15 @@ finish-args:
   - --device=dri
 
 build-options:
-  append-path: /usr/lib/sdk/node18/bin:/app/bin
+  append-path: /usr/lib/sdk/node20/bin:/app/bin
   env:
     NPM_CONFIG_PREFIX: "/app"
     NODE_PATH: "/app/lib/node_modules"
 
-modules:
-  - name: node18-extension
-    buildsystem: simple
-    build-commands:
-      - echo "No build needed for node18 extension"
-    build-options:
-      append-path: /usr/lib/sdk/node18/bin
-    sources:
-      - type: extra-data
-        dest: /usr/lib/sdk/node18
-        url: https://flathub.org/repo/flathub/org.freedesktop.Sdk.Extension.node18/x86_64/23.08/org.freedesktop.Sdk.Extension.node18-23.08.flatpak
-        sha256: skip
-        only-arches: [x86_64]
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node20
 
+modules:
   - name: dasel
     buildsystem: simple
     build-commands:
