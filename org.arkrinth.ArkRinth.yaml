@@ -4,48 +4,16 @@ runtime-version: '45'
 sdk: org.gnome.Sdk
 command: ArkRinth
 finish-args:
+  - --share=network
+  - --share=ipc
   - --socket=x11
   - --socket=wayland
-  - --socket=pulseaudio
-  - --share=ipc
-  - --filesystem=xdg-config/gtk-3.0
-  - --filesystem=xdg-config/gtk-4.0
-  - --filesystem=xdg-config/fontconfig
-  - --filesystem=~/.themes
-  - --filesystem=~/.local/share/themes
-  - --share=network
-
+  - --device=dri
+  - --filesystem=home
 modules:
-  - name: dasel
-    buildsystem: simple
-    build-commands:
-      - curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
-      - chmod +x dasel
-      - mv dasel /usr/local/bin/dasel
-    sources: []
-
   - name: ArkRinth
-    buildsystem: simple
-    builddir: true
+    buildsystem: cmake
     sources:
       - type: git
-        url: .
-        commit: HEAD
-    build-commands:
-      - chmod +x ./packages/app-lib/java/gradlew
-      - dasel put -f apps/app/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
-      - dasel put -f packages/app-lib/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
-      - dasel put -f apps/app-frontend/package.json -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'version'
-      - pnpm install
-      - pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json --bundles flatpak
-      - install -Dm755 target/release/bundle/flatpak/ArkRinth ${FLATPAK_DEST}/bin/ArkRinth
-      - install -Dm644 apps/app/resources/org.arkrinth.ArkRinth.desktop ${FLATPAK_DEST}/share/applications/org.arkrinth.ArkRinth.desktop
-      - install -Dm644 apps/app/resources/icons/icon.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/org.arkrinth.ArkRinth.png
-    build-options:
-      env:
-        # Add PATH so dasel can be found if needed in any scripts
-        - PATH=/usr/local/bin:$PATH
-    build-depends:
-      - rust
-      - nodejs/x86_64/20.0
-      - pnpm
+        url: file://./
+        branch: HEAD
