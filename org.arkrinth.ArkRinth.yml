@@ -1,10 +1,10 @@
 app-id: org.arkrinth.ArkRinth
 runtime: org.freedesktop.Platform
-runtime-version: '22.08'
+runtime-version: '23.08'
 sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
-  - org.freedesktop.Sdk.Extension.node18
+  - org.freedesktop.Sdk.Extension.node20
 
 command: arkrith
 finish-args:
@@ -14,20 +14,40 @@ finish-args:
   - --device=dri
   - --share=network
   - --filesystem=home
+  - --filesystem=xdg-download
 
 build-options:
-  append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node18/bin
+  append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node20/bin
+  env:
+    npm_config_cache: /run/build/arkrith/flatpak-node/npm-cache
+    npm_config_offline: 'true'
+    CARGO_NET_OFFLINE: 'true'
 
 modules:
   - name: arkrith
     buildsystem: simple
     build-commands:
-      - npm install -g pnpm
-      - pnpm install
-      - pnpm run build
+      # Install pnpm and turbo
+      - npm install -g pnpm turbo
+      
+      # Install dependencies (turbo will handle caching)
+      - pnpm install --frozen-lockfile
+      
+      # Build using turbo (similar to Modrinth's setup)
+      - pnpm turbo build
+      
+      # Install Tauri CLI and build
       - cargo install tauri-cli --locked
-      - cargo tauri build
+      - pnpm tauri build
+      
+      # Install the binary
       - install -Dm755 src-tauri/target/release/arkrith /app/bin/arkrith
     sources:
       - type: dir
         path: .
+        skip:
+          - .git
+          - target
+          - node_modules
+          - dist
+          - .turbo
