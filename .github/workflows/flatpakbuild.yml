@@ -11,48 +11,44 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # needed to get full history if needed
+          fetch-depth: 0
 
-      - name: Install Flatpak and dependencies
+      - name: Install Flatpak and deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            flatpak \
-            flatpak-builder \
-            libwebkit2gtk-4.1-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libegl1-mesa-dev \
-            libgl1-mesa-dev \
-            rpm \
-            curl
+          sudo apt-get install -y flatpak flatpak-builder curl
 
-      - name: Add Flathub remote (user mode)
+      - name: Add Flathub remote (user scope)
         run: |
           flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || true
 
-      - name: Install SDK and extensions (user mode)
+      - name: Install runtime and extensions (user mode)
         run: |
-          flatpak --user --noninteractive install flathub \
-            org.freedesktop.Sdk//23.08 \
+          flatpak --user install -y flathub \
             org.freedesktop.Platform//23.08 \
+            org.freedesktop.Sdk//23.08 \
             org.freedesktop.Sdk.Extension.rust-stable//23.08 \
             org.freedesktop.Sdk.Extension.node20//23.08
 
-      - name: Download dasel binary locally
+      - name: Download dasel locally
         run: |
-          curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
+          curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 \
+            -o dasel
           chmod +x dasel
-          mkdir -p dasel-bin
+          mkdir dasel-bin
           mv dasel dasel-bin/
+
+      - name: Make prepare_version.sh executable
+        run: chmod +x prepare_version.sh
 
       - name: Build Flatpak
         run: |
           flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
-          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
 
-      - name: Upload Flatpak artifact
+      - name: Export bundle
+        run: flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ArkRinth.flatpak
