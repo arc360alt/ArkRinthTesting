@@ -1,4 +1,4 @@
-# Flatpak manifest for the ArkRinth app
+# Flatpak manifest for the ArkRinth application
 
 app-id: org.arkrinth.ArkRinth
 runtime: org.gnome.Platform
@@ -6,35 +6,24 @@ runtime-version: '45'
 sdk: org.gnome.Sdk
 command: ArkRinth
 
+# Include Rust and Node via SDK extensions (NO internet installs!)
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.node20
+
 finish-args:
   - --socket=x11
   - --socket=wayland
   - --socket=pulseaudio
   - --share=ipc
+  - --share=network
   - --filesystem=xdg-config/gtk-3.0
   - --filesystem=xdg-config/gtk-4.0
   - --filesystem=xdg-config/fontconfig
   - --filesystem=~/.themes
   - --filesystem=~/.local/share/themes
-  - --share=network
 
 modules:
-  ### Rust toolchain setup
-  - name: rust
-    buildsystem: simple
-    build-commands:
-      - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable
-      - echo 'export PATH=$HOME/.cargo/bin:$PATH' >> /etc/profile.d/rust.sh
-
-  ### Node.js and pnpm setup
-  - name: nodejs-pnpm
-    buildsystem: simple
-    build-commands:
-      - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-      - apt-get install -y nodejs
-      - npm install -g pnpm
-
-  ### Your main app build
   - name: ArkRinth
     builddir: true
     buildsystem: simple
@@ -43,19 +32,19 @@ modules:
         path: .
 
     build-commands:
-      - source /etc/profile.d/rust.sh
+      # Ensure Gradle is executable
       - chmod +x ./packages/app-lib/java/gradlew
 
-      # Set version from Flatpak builder
+      # Apply version info to Rust + JS projects
       - dasel put -f apps/app/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
       - dasel put -f packages/app-lib/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
       - dasel put -f apps/app-frontend/package.json -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'version'
 
-      # Install dependencies and build
+      # Install frontend dependencies and build app
       - pnpm install
       - pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json --bundles flatpak
 
-      # Install built app to Flatpak destination
+      # Install artifacts into Flatpak
       - install -Dm755 target/release/bundle/flatpak/ArkRinth ${FLATPAK_DEST}/bin/ArkRinth
       - install -Dm644 apps/app/resources/org.arkrinth.ArkRinth.desktop ${FLATPAK_DEST}/share/applications/org.arkrinth.ArkRinth.desktop
       - install -Dm644 apps/app/resources/icons/icon.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/org.arkrinth.ArkRinth.png
