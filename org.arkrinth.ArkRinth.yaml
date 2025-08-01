@@ -2,26 +2,44 @@ app-id: org.arkrinth.ArkRinth
 runtime: org.freedesktop.Platform
 runtime-version: '23.08'
 sdk: org.freedesktop.Sdk
-sdk-extensions:
-  - org.freedesktop.Sdk.Extension.node16
-command: arkrinth
+command: ArkRinth
+finish-args:
+  - --share=network
+  - --filesystem=host
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
 modules:
-  - name: dasel
+  - name: node16-extension
+    buildsystem: simple
+    build-commands:
+      - echo "No build needed for extension"
+    build-options:
+      append-path: /usr/lib/sdk/node16/bin
     sources:
-      - type: archive
-        url: https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64.gz
-        sha256: ed162d52a7f490e78b490790d46524405a0117e14a7f0cd3177668d4f4e38bde
+      - type: extra-data
+        dest: /usr/lib/sdk/node16
+        url: https://flathub.org/repo/flathub/org.freedesktop.Sdk.Extension.node16/x86_64/23.08/org.freedesktop.Sdk.Extension.node16-23.08.flatpak
+        sha256: skip
+        only-arches: [x86_64]
+
+  - name: dasel
+    buildsystem: simple
     build-commands:
       - gunzip dasel_linux_amd64.gz
       - install -Dm755 dasel_linux_amd64 /app/bin/dasel
+    sources:
+      - type: file
+        url: https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64.gz
+        sha256: skip
 
   - name: ArkRinth
     buildsystem: simple
     build-commands:
-      - npm install -g pnpm
+      - /usr/lib/sdk/node16/bin/npm install -g pnpm
       - pnpm install
       - pnpm build
-      - install -Dm755 dist/arkrinth /app/bin/arkrinth
+      - install -Dm755 dist/main.js /app/bin/ArkRinth
     sources:
       - type: dir
-        path: .
+        path: ../
