@@ -9,10 +9,10 @@ modules:
   - name: dasel
     buildsystem: simple
     build-commands:
-      - curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
-      - chmod +x dasel
       - mv dasel /app/bin/
-    sources: []
+    sources:
+      - type: dir
+        path: dasel-bin
 
   - name: ArkRinth
     buildsystem: cargo
