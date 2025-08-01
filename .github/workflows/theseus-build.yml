@@ -1,4 +1,4 @@
-name: Modrinth App build
+name: Arkrinth Testing
 on:
   push:
     branches:
