@@ -37,6 +37,18 @@
     "linux": {
       "deb": {
         "depends": []
+      },
+      "appimage": {
+        "bundleMediaFramework": false,
+        "excludedLibraries": [
+          "libEGL.so*",
+          "libGL.so*",
+          "libGLESv2.so*",
+          "libdrm.so*",
+          "libgbm.so*",
+          "libwayland-egl.so*",
+          "libX11.so*"
+        ]
       }
     },
     "fileAssociations": [
