@@ -2,7 +2,7 @@ app-id: org.arkrinth.ArkRinth
 runtime: org.freedesktop.Platform
 runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
-command: arkrinth
+command: ArkRinth
 finish-args:
   - --share=network
   - --share=ipc
@@ -15,11 +15,9 @@ modules:
   - name: dasel
     buildsystem: simple
     sources:
-      - type: file
-        url: https://github.com/TomWright/dasel/releases/download/v2.7.0/dasel_linux_amd64
-        sha256: 20b0b30a16504c72ff138fcfc4e5b7c270ef93cc7c1ed6c7be5791f4cd8db648
-        dest-filename: dasel
-        executable: true
+      - type: archive
+        url: https://github.com/TomWright/dasel/releases/download/v2.7.0/dasel_linux_amd64.tar.gz
+        sha256: 38decc82e0dcf9a5ccd22918b909a78c92ee0d919b4534b0a6d90c802936b1a0
     build-commands:
       - install -D dasel /app/bin/dasel
 
@@ -29,7 +27,7 @@ modules:
       - npm install -g pnpm
       - pnpm install
       - pnpm tauri build
-      - install -Dm755 src-tauri/target/release/arkrinth /app/bin/arkrinth
+      - install -Dm755 src-tauri/target/release/arkrinth /app/bin/ArkRinth
     sources:
       - type: dir
         path: .
