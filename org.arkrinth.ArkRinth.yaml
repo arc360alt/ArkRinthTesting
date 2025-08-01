@@ -2,48 +2,35 @@ app-id: org.arkrinth.ArkRinth
 runtime: org.gnome.Platform
 runtime-version: "45"
 sdk: org.gnome.Sdk
-command: theseus-gui
-modules:
-  - name: ArkRinth
-    buildsystem: cargo
-    sources:
-      - type: git
-        url: https://github.com/modrinth/code.git
-        branch: master
-        commit: HEAD
-    build-options:
-      env:
-        FLATPAK_BUILDER_APP_VERSION: "1.0.0"  # Change as needed or inject dynamically via CI
-    build-commands:
-      # Patch version in Cargo.toml to the FLATPAK_BUILDER_APP_VERSION env var
-      - sed -i "s/^version = \".*\"/version = \"${FLATPAK_BUILDER_APP_VERSION}\"/" apps/app/Cargo.toml
-      # Build your Rust app in release mode, locked dependencies, workspace enabled
-      - cargo build --release --locked --workspace
-    cleanup:
-      - "**/*.d"
-      - "**/*.rlib"
-      - "**/*.rmeta"
-      - "**/build"
-      - "**/target"
-      - "**/*.so"
-      - "**/*.a"
-
+command: ArkRinth
 finish-args:
-  # Needed GTK and system integration libraries
-  - --share=ipc
+  - --share=network
   - --socket=x11
   - --socket=wayland
-  - --device=dri
   - --filesystem=home
+  - --device=dri
   - --talk-name=org.freedesktop.Flatpak
-  - --talk-name=org.freedesktop.portal.Desktop
-  - --env=RUST_BACKTRACE=1
   - --env=FLATPAK_BUILDER_APP_VERSION=1.0.0
-  - --env=CARGO_PKG_VERSION=1.0.0
 
-extensions:
-  - org.freedesktop.Sdk.Extension.rust-stable
+modules:
+  - name: dasel
+    buildsystem: simple
+    build-commands:
+      - curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
+      - chmod +x dasel
+      - mkdir -p /app/bin
+      - mv dasel /app/bin/
+    sources: []
 
-sdk-extensions:
-  - org.freedesktop.Sdk.Extension.rust-stable//23.08
-  - org.freedesktop.Sdk.Extension.node20//23.08
+  - name: ArkRinth
+    buildsystem: simple
+    build-commands:
+      - chmod +x ./packages/app-lib/java/gradlew
+      - ./prepare_version.sh
+      - ./packages/app-lib/java/gradlew build
+      - /app/bin/dasel put -f apps/app/Cargo.toml -t string -v "$FLATPAK_BUILDER_APP_VERSION" 'package.version'
+      - cargo build --release
+    sources:
+      - type: git
+        url: https://github.com/your-org/ArkRinth.git
+        branch: main
