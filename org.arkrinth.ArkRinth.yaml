@@ -2,37 +2,34 @@ app-id: org.arkrinth.ArkRinth
 runtime: org.freedesktop.Platform
 runtime-version: '23.08'
 sdk: org.freedesktop.Sdk
+runtime-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.node20
+
 command: theseus-gui
+
 modules:
-  - name: rust-stable
+  # Removed rust-stable module here (unnecessary & broken)
+  - name: dasel
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/bin
-      - ln -s /usr/bin/cargo /app/bin/
-    sources:
-      - type: archive
-        url: https://github.com/rust-lang/rust/archive/refs/tags/1.73.0.tar.gz
-        sha256: <your-sha256-here>
+      - curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
+      - chmod +x dasel
+      - mv dasel /app/bin/
+    sources: []
 
   - name: ArkRinth
     buildsystem: cargo
-    build-options:
-      env:
-        CARGO_HOME: /app/.cargo
     build-commands:
+      - ./prepare_version.sh "${FLATPAK_BUILDER_APP_VERSION}"
       - cargo build --release
     sources:
       - type: git
         url: https://github.com/arc360alt/ArkRinthTesting.git
         tag: master
-        # Make sure this path matches your repo structure, using root here
         path: .
-    
-build-extensions:
-  - org.freedesktop.Sdk.Extension.rust-stable
 
 finish-args:
-  # Add any necessary permissions here
   - --share=network
   - --socket=x11
   - --socket=wayland
