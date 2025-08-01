@@ -1,4 +1,4 @@
-name: ArkRinth build
+name: ArkrinthTest
 on:
   push:
     branches:
@@ -39,12 +39,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 🧰 Setup Java for Gradle
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
       - name: 🧰 Setup Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -66,7 +60,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -yq libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
-
+      
       - name: ⚙️ Grant execute permissions to gradlew
         if: startsWith(matrix.platform, 'ubuntu') || startsWith(matrix.platform, 'macos')
         run: chmod +x ./packages/app-lib/java/gradlew
@@ -80,7 +74,7 @@ jobs:
           rename-to: ${{ startsWith(matrix.platform, 'windows') && 'dasel.exe' || 'dasel' }}
           chmod: 0755
 
-      - name: ⚙️ Set application version
+      - name: ⚙️ Set application version and environment
         shell: bash
         run: |
           APP_VERSION="$(git describe --tags --always | sed -E 's/-([0-9]+)-(g[0-9a-fA-F]+)$/-canary+\1.\2/')"
@@ -99,7 +93,7 @@ jobs:
       - name: 🔨 Build macOS app
         run: pnpm --filter=@modrinth/app run tauri build --target universal-apple-darwin --config tauri-release.conf.json
         if: startsWith(matrix.platform, 'macos')
-
+      
       - name: 🔨 Build Linux app
         run: pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
         if: startsWith(matrix.platform, 'ubuntu')
@@ -107,16 +101,16 @@ jobs:
       - name: 🔨 Build Windows app
         run: pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
         if: startsWith(matrix.platform, 'windows')
-
+      
       - name: 📤 Upload app bundles
         uses: actions/upload-artifact@v4
         with:
           name: App bundle (${{ matrix.artifact-target-name }})
           path: |
-            target/release/bundle/appimage/ArkRinth_*.AppImage*
-            target/release/bundle/deb/ArkRinth_*.deb*
-            target/release/bundle/rpm/ArkRinth_-*.rpm*
-            target/universal-apple-darwin/release/bundle/macos/ArkRinth.app.tar.gz*
-            target/universal-apple-darwin/release/bundle/dmg/ArkRinth_*.dmg*
-            target/release/bundle/nsis/ArkRinth_*-setup.exe*
-            target/release/bundle/nsis/ArkRinth_*-setup.nsis.zip*
+            target/release/bundle/appimage/Modrinth App_*.AppImage*
+            target/release/bundle/deb/Modrinth App_*.deb*
+            target/release/bundle/rpm/Modrinth App-*.rpm*
+            target/universal-apple-darwin/release/bundle/macos/Modrinth App.app.tar.gz*
+            target/universal-apple-darwin/release/bundle/dmg/Modrinth App_*.dmg*
+            target/release/bundle/nsis/Modrinth App_*-setup.exe*
+            target/release/bundle/nsis/Modrinth App_*-setup.nsis.zip*
