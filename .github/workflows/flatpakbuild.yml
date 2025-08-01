@@ -20,7 +20,7 @@ jobs:
       uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: true
-        manifest-path: com.arkrith.ArkRinth.yml
+        manifest-path: org.arkrinth.ArkRinth.yml
         cache-key: flatpak-builder-${{ github.sha }}
 
     - name: Upload Flatpak
