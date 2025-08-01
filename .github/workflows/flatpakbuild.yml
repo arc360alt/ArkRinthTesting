@@ -6,11 +6,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/flatpak/flatpak-builder:latest
+      image: flatpak/flatpak-builder:stable  # ✅ Fixed image
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create Flatpak user dir
+      - name: Create Flatpak user dir and install extension
         run: |
           mkdir -p ~/.local/share/flatpak
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
