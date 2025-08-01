@@ -1,4 +1,4 @@
-name: ArkrinthTest
+name: Modrinth App build
 on:
   push:
     branches:
@@ -82,7 +82,6 @@ jobs:
           dasel put -f apps/app/Cargo.toml -t string -v "${APP_VERSION#v}" 'package.version'
           dasel put -f packages/app-lib/Cargo.toml -t string -v "${APP_VERSION#v}" 'package.version'
           dasel put -f apps/app-frontend/package.json -t string -v "${APP_VERSION#v}" 'version'
-          cp packages/app-lib/.env.prod packages/app-lib/.env
 
       - name: 💨 Setup Turbo cache
         uses: rharkor/caching-for-turbo@v1.8
