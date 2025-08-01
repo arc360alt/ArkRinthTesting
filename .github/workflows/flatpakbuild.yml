@@ -2,58 +2,43 @@ name: Flatpak Build
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
+
+env:
+  GH_PAT: ${{ secrets.GH_PAT }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      GH_PAT: ${{ secrets.GH_PAT }}
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Flatpak
+      - name: Install Flatpak
         run: |
           sudo apt update
-          sudo apt install -y flatpak flatpak-builder git curl
+          sudo apt install -y flatpak flatpak-builder
 
-      - name: Add Flathub Repo (user mode)
+      - name: Add Flathub repo (user mode)
         run: |
           flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-      - name: Install Flatpak SDKs (user mode)
+      - name: Install Flatpak SDKs
         run: |
-          flatpak --user install -y flathub org.gnome.Sdk//45 \
-                                      org.gnome.Platform//45 \
-                                      org.freedesktop.Sdk.Extension.rust-stable//23.08 \
-                                      org.freedesktop.Sdk.Extension.node20//23.08
+          flatpak --user install -y flathub org.freedesktop.Platform//23.08 org.freedesktop.Sdk//23.08
 
-      - name: Install dasel
-        run: |
-          curl -sSLf https://github.com/TomWright/dasel/releases/latest/download/dasel_linux_amd64 -o dasel
-          chmod +x dasel
-          sudo mv dasel /usr/local/bin/
+      - name: Make prepare_version.sh executable
+        run: chmod +x prepare_version.sh
 
-      - name: Prepare Version
-        run: |
-          chmod +x prepare_version.sh
-          ./prepare_version.sh "${GITHUB_SHA}"
+      - name: Prepare version
+        run: ./prepare_version.sh "${GITHUB_SHA}"
 
       - name: Build Flatpak (user mode)
         run: |
           flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
 
-      - name: Export Flatpak Bundle
+      - name: Show Flatpak repo contents
         run: |
           flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ArkRinth.flatpak
-          path: ArkRinth.flatpak
