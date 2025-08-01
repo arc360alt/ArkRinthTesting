@@ -1,36 +1,23 @@
 app-id: org.arkrinth.ArkRinth
 runtime: org.gnome.Platform
-runtime-version: "45"
+runtime-version: '45'
 sdk: org.gnome.Sdk
-command: ArkRinth
-finish-args:
-  - --share=network
-  - --socket=x11
-  - --socket=wayland
-  - --filesystem=home
-  - --device=dri
-  - --talk-name=org.freedesktop.Flatpak
-  - --env=FLATPAK_BUILDER_APP_VERSION=1.0.0
-
+command: theseus-gui
 modules:
+  - name: ArkRinth
+    buildsystem: simple
+    build-commands:
+      - ./packages/app-lib/java/gradlew build
+      - ./prepare_version.sh
+      - cargo build --release --manifest-path=apps/app/Cargo.toml
+    sources:
+      - type: git
+        url: https://x-access-token:${GH_PAT}@github.com/your-org/ArkRinth.git
+        branch: main
   - name: dasel
     buildsystem: simple
     build-commands:
       - curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
       - chmod +x dasel
-      - mkdir -p /app/bin
-      - mv dasel /app/bin/
+      - mv dasel /usr/bin/dasel
     sources: []
-
-  - name: ArkRinth
-    buildsystem: simple
-    build-commands:
-      - chmod +x ./packages/app-lib/java/gradlew
-      - ./prepare_version.sh
-      - ./packages/app-lib/java/gradlew build
-      - /app/bin/dasel put -f apps/app/Cargo.toml -t string -v "$FLATPAK_BUILDER_APP_VERSION" 'package.version'
-      - cargo build --release
-    sources:
-      - type: git
-        url: https://github.com/your-org/ArkRinth.git
-        branch: main
