@@ -1,7 +1,7 @@
 name: Flatpak CI Build
 
 on:
-  workflow_dispatch:  # manual trigger only
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,11 +10,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create Flatpak user dir and add Flathub
+      - name: Install Flatpak and dependencies
         run: |
-          mkdir -p ~/.local/share/flatpak
-          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y org.freedesktop.Sdk.Extension.node16/23.08
+          sudo apt-get update
+          sudo apt-get install -y flatpak build-essential
+
+      - name: Add Flathub remote
+        run: |
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Install node16 extension
+        run: |
+          flatpak install -y --noninteractive flathub org.freedesktop.Sdk.Extension.node16//23.08
 
       - name: Build Flatpak
         run: |
