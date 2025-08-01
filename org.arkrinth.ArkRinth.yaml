@@ -38,7 +38,7 @@ modules:
     sources:
       - type: file
         url: https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64.gz
-        sha256: skip
+        sha256: ed162d52a7f490e78b490790d46524405a0117e14a7f0cd3177668d4f4e38bde
 
   - name: ArkRinth
     buildsystem: simple
