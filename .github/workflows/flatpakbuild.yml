@@ -1,36 +1,45 @@
----
-# .github/workflows/build-flatpak.yml
-name: Build Flatpak (Tauri v2)
+name: Build Flatpak (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Build type"
+        required: false
+        default: "Release"
 
 jobs:
-  build:
+  flatpak:
+    name: 🧊 Manual Flatpak Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
-      - uses: actions/checkout@v4
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: 🧰 Set up Flatpak
+        uses: flatpak/flatpak-github-actions/setup-flatpak@v6
         with:
-          node-version: 20
-          cache: 'pnpm'
+          flatpak-builder-user: true
+          skip-remote-add: true
 
-      - name: Enable Corepack and Install pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@latest --activate
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - name: 📦 Install Flatpak SDKs
+        uses: flatpak/flatpak-github-actions/flatpak-builder-install-deps@v6
         with:
-          toolchain: stable
-          override: true
+          manifest-path: org.arkrinth.ArkRinth.yaml
 
-      - name: Install flatpak and flatpak-builder
-        run: sudo apt update && sudo apt install -y flatpak flatpak-builder
+      - name: 🚧 Build Flatpak Bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: arkrinth.flatpak
+          manifest-path: org.arkrinth.ArkRinth.yaml
+          build-args: --user --force-clean --ccache
+          cache-key: flatpak-${{ github.sha }}
 
-      - name: Add Flathub Remote (User Mode)
-        run: flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-      - name: Build Flatpak
-        run: |
-          flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+      - name: 📤 Upload Flatpak Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: arkrinth.flatpak
+          path: arkrinth.flatpak
