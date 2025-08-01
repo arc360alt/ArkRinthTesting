@@ -15,21 +15,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y flatpak build-essential
 
-      - name: Configure Flathub
+      - name: Add Flathub remote & install node18 SDK extension
         run: |
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install -y --noninteractive flathub org.freedesktop.Sdk.Extension.node16/23.08
+          flatpak install --user -y --noninteractive flathub org.freedesktop.Sdk.Extension.node18/23.08
 
       - name: Build Flatpak
         run: |
           flatpak-builder --user --force-clean --install-deps-from=flathub --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
 
-      - name: Bundle Flatpak
+      - name: Create Flatpak bundle
         run: |
           flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
 
-      - name: Upload artifact
+      - name: Upload Flatpak artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ArkRinth-flatpak
+          name: ArkRinth.flatpak
           path: ArkRinth.flatpak
