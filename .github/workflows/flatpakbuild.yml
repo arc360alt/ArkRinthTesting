@@ -1,53 +1,21 @@
-name: Flatpak Build
+name: Flatpak CI Build
 
-on:
-  workflow_dispatch:
-    inputs:
-      build-name:
-        description: 'Build name (optional)'
-        required: false
-        default: 'Manual Build'
+on: [push]
 
 jobs:
   build:
-    name: Build Flatpak - ${{ github.event.inputs['build-name'] }}
     runs-on: ubuntu-latest
-
+    container:
+      image: ghcr.io/flatpak/flatpak-builder:latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Flatpak and dependencies
+      - name: Create Flatpak user dir
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            flatpak \
-            flatpak-builder \
-            libwebkit2gtk-4.1-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libegl1-mesa-dev \
-            libgl1-mesa-dev \
-            rpm
-
-      - name: Add Flathub remote (user mode)
-        run: |
-          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-      - name: Install SDK and runtime (user mode)
-        run: |
-          flatpak --user --noninteractive install flathub \
-            org.freedesktop.Sdk//23.08 \
-            org.freedesktop.Platform//23.08
+          mkdir -p ~/.local/share/flatpak
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y org.freedesktop.Sdk.Extension.node16//23.08
 
       - name: Build Flatpak
         run: |
-          flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
-          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
-
-      - name: Upload Flatpak artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ArkRinth.flatpak
-          path: ArkRinth.flatpak
+          flatpak-builder --user --force-clean --install-deps-from=flathub --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
