@@ -1,14 +1,11 @@
 name: Flatpak CI Build
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # manual trigger only
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: kdeorg/flatpak-builder:latest
-      options: --user root
 
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +14,7 @@ jobs:
         run: |
           mkdir -p ~/.local/share/flatpak
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y org.freedesktop.Sdk.Extension.node16//23.08
+          flatpak install --user -y org.freedesktop.Sdk.Extension.node16/23.08
 
       - name: Build Flatpak
         run: |
@@ -25,10 +22,10 @@ jobs:
 
       - name: Create Flatpak bundle
         run: |
-          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
 
-      - name: Upload Flatpak bundle artifact
+      - name: Upload Flatpak artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ArkRinth-flatpak-bundle
+          name: ArkRinth.flatpak
           path: ArkRinth.flatpak
