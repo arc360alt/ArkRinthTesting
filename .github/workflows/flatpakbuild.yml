@@ -1,45 +1,58 @@
-name: Build Flatpak (Manual)
+name: Flatpak Build
 
 on:
   workflow_dispatch:
     inputs:
-      build_type:
-        description: "Build type"
+      build-name:
+        description: 'Build name (optional)'
         required: false
-        default: "Release"
+        default: 'Manual Build'
 
 jobs:
-  flatpak:
-    name: 🧊 Manual Flatpak Build
+  build:
+    name: Build Flatpak - ${{ github.event.inputs['build-name'] }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
-      - name: ⬇️ Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🧰 Set up Flatpak
-        uses: flatpak/flatpak-github-actions/setup-flatpak@v6
+      - name: Setup Flatpak
+        uses: flathub/flatpak-github-actions/setup-flatpak@v6
         with:
-          flatpak-builder-user: true
-          skip-remote-add: true
+          user: true
 
-      - name: 📦 Install Flatpak SDKs
-        uses: flatpak/flatpak-github-actions/flatpak-builder-install-deps@v6
-        with:
-          manifest-path: org.arkrinth.ArkRinth.yaml
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            flatpak-builder \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libegl1-mesa-dev \
+            libgl1-mesa-dev \
+            rpm
 
-      - name: 🚧 Build Flatpak Bundle
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-        with:
-          bundle: arkrinth.flatpak
-          manifest-path: org.arkrinth.ArkRinth.yaml
-          build-args: --user --force-clean --ccache
-          cache-key: flatpak-${{ github.sha }}
+      - name: Add Flathub remote (user mode)
+        run: flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-      - name: 📤 Upload Flatpak Bundle
+      - name: Install SDK and extensions (user mode)
+        run: |
+          flatpak --user --noninteractive install flathub \
+            org.gnome.Sdk//45 \
+            org.gnome.Platform//45 \
+            org.freedesktop.Sdk.Extension.rust-stable//23.08 \
+            org.freedesktop.Sdk.Extension.node20//23.08
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
+
+      - name: Upload Flatpak artifact
         uses: actions/upload-artifact@v4
         with:
-          name: arkrinth.flatpak
-          path: arkrinth.flatpak
+          name: ArkRinth.flatpak
+          path: ArkRinth.flatpak
