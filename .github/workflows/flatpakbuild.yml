@@ -36,7 +36,7 @@ jobs:
       - name: Prepare Version
         run: |
           chmod +x prepare_version.sh
-          ./prepare_version.sh
+          ./prepare_version.sh "${GITHUB_SHA}"  # Using GitHub commit hash as version
 
       - name: Build Flatpak
         run: |
