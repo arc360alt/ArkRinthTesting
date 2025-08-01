@@ -3,6 +3,7 @@ runtime: org.gnome.Platform
 runtime-version: '45'
 sdk: org.gnome.Sdk
 command: theseus-gui
+
 modules:
   - name: ArkRinth
     buildsystem: simple
@@ -11,13 +12,5 @@ modules:
       - ./prepare_version.sh
       - cargo build --release --manifest-path=apps/app/Cargo.toml
     sources:
-      - type: git
-        url: https://x-access-token:${GH_PAT}@github.com/your-org/ArkRinth.git
-        branch: main
-  - name: dasel
-    buildsystem: simple
-    build-commands:
-      - curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
-      - chmod +x dasel
-      - mv dasel /usr/bin/dasel
-    sources: []
+      - type: dir
+        path: ArkRinth-src
