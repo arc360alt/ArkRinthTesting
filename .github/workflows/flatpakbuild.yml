@@ -1,50 +1,44 @@
 name: Flatpak Build
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Install system dependencies
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Flatpak dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y curl flatpak flatpak-builder npm pnpm
+          sudo apt update
+          sudo apt install -y flatpak flatpak-builder nodejs npm libwebkit2gtk-4.1-dev libxdo-dev curl
+          npm install -g pnpm
 
-      - name: Add Flathub (user mode)
+      - name: Add Flathub
         run: |
-          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || true
-
-      - name: Install SDKs and extensions (user mode)
-        run: |
-          flatpak --user install -y flathub \
-            org.freedesktop.Platform//23.08 \
-            org.freedesktop.Sdk//23.08 \
-            org.freedesktop.Sdk.Extension.rust-stable//23.08 \
-            org.freedesktop.Sdk.Extension.node20//23.08
-
-      - name: Download dasel
-        run: |
-          curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
-          chmod +x dasel
-          mkdir -p dasel-bin
-          mv dasel dasel-bin/
-
-      - name: Make prepare_version.sh executable
-        run: chmod +x prepare_version.sh
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
       - name: Build Flatpak
         run: |
           flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+
+      - name: Export Flatpak Bundle
+        run: |
           flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ArkRinth.flatpak
+          name: ArkRinth
           path: ArkRinth.flatpak
