@@ -9,6 +9,13 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
+
+build-options:
+  append-path: /usr/lib/sdk/node16/bin:/app/bin
+  env:
+    NPM_CONFIG_PREFIX: "/app"
+    NODE_PATH: "/app/lib/node_modules"
+
 modules:
   - name: node16-extension
     buildsystem: simple
@@ -36,7 +43,7 @@ modules:
   - name: ArkRinth
     buildsystem: simple
     build-commands:
-      - /usr/lib/sdk/node16/bin/npm install -g pnpm
+      - npm install -g pnpm
       - pnpm install
       - pnpm build
       - install -Dm755 dist/main.js /app/bin/ArkRinth
