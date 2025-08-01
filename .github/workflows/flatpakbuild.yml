@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: flatpak/flatpak-builder:stable  # ✅ Fixed image
+      image: docker.io/flathub/flatpak-builder:23.08
     steps:
       - uses: actions/checkout@v4
 
@@ -19,3 +19,13 @@ jobs:
       - name: Build Flatpak
         run: |
           flatpak-builder --user --force-clean --install-deps-from=flathub --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+
+      - name: Export Flatpak bundle
+        run: |
+          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Upload Flatpak bundle artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ArkRinth-flatpak-bundle
+          path: ArkRinth.flatpak
