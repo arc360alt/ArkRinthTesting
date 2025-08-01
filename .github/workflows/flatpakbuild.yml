@@ -8,21 +8,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install Flatpak and deps
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder curl
+          sudo apt-get install -y curl flatpak flatpak-builder npm pnpm
 
-      - name: Add Flathub remote (user scope)
+      - name: Add Flathub (user mode)
         run: |
           flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || true
 
-      - name: Install runtime and extensions (user mode)
+      - name: Install SDKs and extensions (user mode)
         run: |
           flatpak --user install -y flathub \
             org.freedesktop.Platform//23.08 \
@@ -30,12 +29,11 @@ jobs:
             org.freedesktop.Sdk.Extension.rust-stable//23.08 \
             org.freedesktop.Sdk.Extension.node20//23.08
 
-      - name: Download dasel locally
+      - name: Download dasel
         run: |
-          curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 \
-            -o dasel
+          curl -L https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64 -o dasel
           chmod +x dasel
-          mkdir dasel-bin
+          mkdir -p dasel-bin
           mv dasel dasel-bin/
 
       - name: Make prepare_version.sh executable
@@ -44,12 +42,9 @@ jobs:
       - name: Build Flatpak
         run: |
           flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
 
-      - name: Export bundle
-        run: flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: ArkRinth.flatpak
           path: ArkRinth.flatpak
