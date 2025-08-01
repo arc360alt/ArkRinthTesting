@@ -142,7 +142,7 @@ jobs:
           path: |
             target/release/bundle/appimage/ArkRinth_*.AppImage*
             target/release/bundle/deb/ArkRinth_*.deb*
-            target/release/bundle/rpm/ArkRinth_-*.rpm*
+            target/release/bundle/rpm/ArkRinth-*.rpm*
             target/universal-apple-darwin/release/bundle/macos/ArkRinth_.app.tar.gz*
             target/universal-apple-darwin/release/bundle/dmg/ArkRinth_*.dmg*
             target/release/bundle/nsis/ArkRinth_*-setup.exe*
