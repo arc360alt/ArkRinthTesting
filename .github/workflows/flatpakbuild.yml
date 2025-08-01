@@ -6,11 +6,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/flatpak/flatpak-builder:latest
+      image: flatpak/flatpak-builder:stable
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create Flatpak user dir
+      - name: Create Flatpak user dir and add flathub remote
         run: |
           mkdir -p ~/.local/share/flatpak
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -19,6 +20,9 @@ jobs:
       - name: Build Flatpak
         run: |
           flatpak-builder --user --force-clean --install-deps-from=flathub --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+
+      - name: Create Flatpak bundle
+        run: |
           flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
 
       - name: Upload Flatpak bundle artifact
