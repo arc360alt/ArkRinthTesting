@@ -1,25 +1,39 @@
 app-id: org.arkrinth.ArkRinth
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
-
-command: theseus-gui
+command: arkrinth
+finish-args:
+  - --share=network
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=home
 
 modules:
+  - name: rust-stable
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/bin
+      - ln -s /usr/bin/cargo /app/bin/
+    sources: []
+
   - name: dasel
     buildsystem: simple
     build-commands:
-      - mv dasel /app/bin/
+      - install -D dasel /app/bin/dasel
     sources:
-      - type: dir
-        path: dasel-bin
+      - type: file
+        path: https://github.com/TomWright/dasel/releases/download/v1.25.0/dasel_linux_amd64
+        dest-filename: dasel
 
   - name: ArkRinth
-    buildsystem: cargo
+    buildsystem: simple
     build-commands:
-      - ./prepare_version.sh "${FLATPAK_BUILDER_APP_VERSION}"
       - cargo build --release
+      - install -Dm755 target/release/arkrinth /app/bin/arkrinth
     sources:
-      - type: dir
-        path: .
-# force
+      - type: git
+        url: https://x-access-token:${GH_PAT}@github.com/arc360alt/ArkRinthTesting.git
+        tag: main
+        branch: main
