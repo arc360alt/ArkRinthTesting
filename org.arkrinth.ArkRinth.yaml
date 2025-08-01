@@ -17,7 +17,7 @@ modules:
     sources:
       - type: archive
         url: https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64.gz
-        sha256: 8673ad05c30fa7e15942c6a678370476f06aee9de06e44aa76ebd02ca6b2874a
+        sha256: ed162d52a7f490e78b490790d46524405a0117e14a7f0cd3177668d4f4e38bde
     build-commands:
       - gunzip dasel_linux_amd64.gz
       - install -Dm755 dasel_linux_amd64 /app/bin/dasel
