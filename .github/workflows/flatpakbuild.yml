@@ -1,0 +1,63 @@
+# .github/workflows/flatpak-build.yml
+
+name: Flatpak Build
+
+on:
+  # Trigger the workflow on push to the main branch, tags, or manual dispatch
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Flatpak
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🧰 Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          rustflags: ''
+          # The target for Flatpak is x86_64-unknown-linux-gnu
+          target: x86_64-unknown-linux-gnu
+          cache-key: ${{ matrix.platform }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🧰 Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 🧰 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: 🧰 Install Flatpak and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libegl1-mesa-dev libgl1-mesa-dev rpm
+
+      - name: 🔨 Build the Flatpak
+        # The flatpak-builder command is a common way to build a Flatpak.
+        # It takes a directory for the build, a directory for the repository, and the manifest file.
+        # This example assumes you have a manifest file named `org.arkrinth.ArkRinth.yaml` at the root of your project.
+        run: |
+          flatpak-builder --force-clean --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+
+      - name: 📦 Create the Flatpak bundle
+        # This step creates a single .flatpak file from the repository, which is easier to upload.
+        run: |
+          flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
+
+      - name: 📤 Upload Flatpak bundle as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flatpak Bundle
+          path: ArkRinth.flatpak
