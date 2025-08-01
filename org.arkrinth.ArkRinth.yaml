@@ -16,10 +16,11 @@ modules:
     buildsystem: simple
     sources:
       - type: archive
-        url: https://github.com/TomWright/dasel/releases/download/v2.7.0/dasel_linux_amd64.tar.gz
-        sha256: 38decc82e0dcf9a5ccd22918b909a78c92ee0d919b4534b0a6d90c802936b1a0
+        url: https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64.gz
+        sha256: 8673ad05c30fa7e15942c6a678370476f06aee9de06e44aa76ebd02ca6b2874a
     build-commands:
-      - install -D dasel /app/bin/dasel
+      - gunzip dasel_linux_amd64.gz
+      - install -Dm755 dasel_linux_amd64 /app/bin/dasel
 
   - name: ArkRinth
     buildsystem: simple
