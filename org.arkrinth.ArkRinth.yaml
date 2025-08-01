@@ -1,30 +1,41 @@
 app-id: org.arkrinth.ArkRinth
 runtime: org.gnome.Platform
-runtime-version: "45"
+runtime-version: '45'
 sdk: org.gnome.Sdk
 command: ArkRinth
 finish-args:
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --share=ipc
+  - --filesystem=xdg-config/gtk-3.0
+  - --filesystem=xdg-config/gtk-4.0
+  - --filesystem=xdg-config/fontconfig
+  - --filesystem=~/.themes
+  - --filesystem=~/.local/share/themes
   - --share=network
-  - --filesystem=home
 
 modules:
-  - name: rust-stable-extension
-    buildsystem: meson
-    config-opts: []
+  - name: ArkRinth
+    builddir: true
+    buildsystem: simple
     sources:
       - type: git
-        url: https://github.com/flathub/org.freedesktop.Sdk.Extension.rust-stable
-        tag: 23.08.3
-    post-install:
-      - flatpak install --user --noninteractive org.freedesktop.Sdk.Extension.rust-stable//23.08
+        url: .
+        commit: HEAD
 
-  - name: ArkRinth
-    buildsystem: simple
     build-commands:
       - chmod +x ./packages/app-lib/java/gradlew
-      - sed -i "s/^version = \".*\"/version = \"${FLATPAK_BUILDER_APP_VERSION}\"/" apps/app/Cargo.toml
-      - cargo build --release --manifest-path=apps/app/Cargo.toml
-      - install -D target/release/arkrinth /app/bin/ArkRinth
-    sources:
-      - type: dir
-        path: .
+      - dasel put -f apps/app/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
+      - dasel put -f packages/app-lib/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
+      - dasel put -f apps/app-frontend/package.json -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'version'
+      - pnpm install
+      - pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json --bundles "flatpak"
+      - install -Dm755 target/release/bundle/flatpak/ArkRinth ${FLATPAK_DEST}/bin/ArkRinth
+      - install -Dm644 apps/app/resources/org.arkrinth.ArkRinth.desktop ${FLATPAK_DEST}/share/applications/org.arkrinth.ArkRinth.desktop
+      - install -Dm644 apps/app/resources/icons/icon.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/org.arkrinth.ArkRinth.png
+
+build-options:
+  runtime-extensions:
+    - org.freedesktop.Sdk.Extension.rust-stable//23.08
+    - org.freedesktop.Sdk.Extension.node20//23.08
