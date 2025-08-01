@@ -1,39 +1,52 @@
 name: Flatpak Build
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
+
     steps:
-      - name: Checkout main ArkRinth repository (this one)
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Checkout private submodule ArkRinth repo
-        uses: actions/checkout@v4
-        with:
-          repository: arc360alt/ArkRinthTesting
-          token: ${{ secrets.GH_PAT }}
-          path: ArkRinth-src
-
-      - name: Install flatpak + deps
+      - name: Set up Flatpak
         run: |
           sudo apt update
-          sudo apt install -y flatpak flatpak-builder libglib2.0-dev curl
+          sudo apt install -y flatpak flatpak-builder git
 
-      - name: Add Flathub remotes and install SDK
+      - name: Add Flathub Repo (user mode)
         run: |
-          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.gnome.Sdk//45 org.gnome.Platform//45
+          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Install Flatpak SDKs (user mode)
+        run: |
+          flatpak --user install -y flathub org.gnome.Sdk//45 \
+                                      org.gnome.Platform//45 \
+                                      org.freedesktop.Sdk.Extension.rust-stable//23.08 \
+                                      org.freedesktop.Sdk.Extension.node20//23.08
+
+      - name: Prepare Version
+        run: |
+          chmod +x prepare_version.sh
+          ./prepare_version.sh
 
       - name: Build Flatpak
         run: |
-          flatpak-builder --force-clean --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+          flatpak-builder --force-clean --user --ccache --repo=repo builddir org.arkrinth.ArkRinth.yaml
+
+      - name: Export Flatpak Bundle
+        run: |
           flatpak build-bundle repo ArkRinth.flatpak org.arkrinth.ArkRinth
 
-      - name: Upload Flatpak Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ArkRinth.flatpak
