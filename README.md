@@ -1,1 +1,11 @@
-A work in progress
+# Supported OS's
+
+- Windows
+Works fine whtih the included EXE
+- MacOS
+Works fine whtih the included DMG
+- Linux
+- > Debian works fine whith the included DEB
+- > Fedora works fine whith the included RPM
+- > All other distros do not work, the Appimage is broken, we are currently investigating a way to fix it.
+- > Flatpaks are not included just yet
