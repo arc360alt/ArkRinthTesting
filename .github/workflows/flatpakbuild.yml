@@ -44,11 +44,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libegl1-mesa-dev libgl1-mesa-dev rpm
 
-          # Add Flathub remote if missing
-          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          # Add Flathub remote for the current user only
+          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-          # Install the required SDK and runtime
-          flatpak install -y flathub org.gnome.Platform//45 org.gnome.Sdk//45
+          # Install required runtime & SDK for user
+          flatpak --user install -y flathub org.gnome.Platform//45 org.gnome.Sdk//45
 
 
       - name: 🔨 Build the Flatpak
