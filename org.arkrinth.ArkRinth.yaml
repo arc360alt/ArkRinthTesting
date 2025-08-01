@@ -36,7 +36,7 @@ modules:
       - type: git
         url: .
         commit: HEAD
-
+    
     # Dependencies required to build your Tauri app
     # This array specifies the build-time dependencies that Flatpak will automatically install.
     build-depends:
@@ -46,13 +46,13 @@ modules:
 
     # The actual build commands to compile the Tauri app
     build-commands:
+      # Grant execute permissions to gradlew
+      - chmod +x ./packages/app-lib/java/gradlew
+
       # Use Dasel to set the version number from the commit hash
       - dasel put -f apps/app/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
       - dasel put -f packages/app-lib/Cargo.toml -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'package.version'
       - dasel put -f apps/app-frontend/package.json -t string -v "${FLATPAK_BUILDER_APP_VERSION}" 'version'
-
-      # Grant execute permissions to gradlew
-      - chmod +x ./packages/app-lib/java/gradlew
 
       # Install dependencies using pnpm
       - pnpm install
