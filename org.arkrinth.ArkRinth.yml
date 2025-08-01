@@ -1,0 +1,33 @@
+app-id: org.arkrinth.ArkRinth
+runtime: org.freedesktop.Platform
+runtime-version: '22.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.node18
+
+command: arkrith
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --share=network
+  - --filesystem=home
+
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node18/bin
+
+modules:
+  - name: arkrith
+    buildsystem: simple
+    build-commands:
+      - npm install -g pnpm
+      - pnpm install
+      - pnpm run build
+      - cargo install tauri-cli --locked
+      - cargo tauri build
+      - install -Dm755 src-tauri/target/release/arkrith /app/bin/arkrith
+    sources:
+      - type: dir
+        path: .
