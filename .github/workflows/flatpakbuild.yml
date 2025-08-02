@@ -1,31 +1,44 @@
-name: Build ArkRinth Flatpak
+name: Build Flatpak
 
 on:
-  workflow_dispatch:
   push:
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
   release:
     types: [ published ]
 
 jobs:
-  build-flatpak:
+  flatpak:
+    name: Build Flatpak
     runs-on: ubuntu-latest
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-23.08
       options: --privileged
-
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
 
-    - name: Build Flatpak
-      uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6
-      with:
-        bundle: true
-        manifest-path: org.arkrinth.ArkRinth.yml
-        cache-key: flatpak-builder-${{ github.sha }}
+      - name: Build Flatpak
+        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: arkrinth.flatpak
+          manifest-path: org.arkrinth.ArkRinth.yml
+          cache-key: flatpak-builder-${{ github.sha }}
 
-    - name: Upload Flatpak
-      uses: actions/upload-artifact@v4
-      with:
-        name: arkrith-flatpak
-        path: "*.flatpak"
+      - name: Upload Flatpak Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: arkrinth-flatpak
+          path: arkrinth.flatpak
+          retention-days: 30
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: arkrinth.flatpak
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
