@@ -22,6 +22,19 @@ finish-args:
   - --env=ELECTRON_TRASH=gio
 
 modules:
+  - name: nodejs
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nodejs
+      - mkdir -p /app/bin
+      - cp -r * /app/lib/nodejs/
+      - ln -s /app/lib/nodejs/bin/node /app/bin/node
+      - ln -s /app/lib/nodejs/bin/npm /app/bin/npm
+    sources:
+      - type: archive
+        url: https://nodejs.org/dist/v18.17.0/node-v18.17.0-linux-x64.tar.xz
+        sha256: 5fda4e50e18987dd1133cae8e6403c6ea3a5c04f3bbcfa9d5c12d3e8e6c8e5b5
+
   - name: arkrinth
     buildsystem: simple
     build-commands:
