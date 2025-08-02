@@ -1,10 +1,16 @@
 name: Build Flatpak
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+        - release
+        - debug
   release:
     types: [ published ]
 
