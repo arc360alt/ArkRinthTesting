@@ -51,4 +51,4 @@ modules:
         sources:
           - type: archive
             url: https://nodejs.org/dist/v18.17.0/node-v18.17.0-linux-x64.tar.xz
-            sha256: 5fda4e50e18987dd1133cae8e6403c6ea3a5c04f3bbcfa9d5c12d3e8e6c8e5b5
+            sha256: f36facda28c4d5ce76b3a1b4344e688d29d9254943a47f2f1909b1a10acb1959
