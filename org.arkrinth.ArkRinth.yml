@@ -2,52 +2,54 @@ app-id: org.arkrinth.ArkRinth
 runtime: org.freedesktop.Platform
 runtime-version: '23.08'
 sdk: org.freedesktop.Sdk
-sdk-extensions:
-  - org.freedesktop.Sdk.Extension.rust-stable
-  - org.freedesktop.Sdk.Extension.node20
+base: org.electronjs.Electron2.BaseApp
+base-version: '23.08'
+command: modrinth-code
+separate-locales: false
 
-command: arkrith
 finish-args:
   - --share=ipc
-  - --socket=fallback-x11
+  - --socket=x11
   - --socket=wayland
-  - --device=dri
+  - --socket=pulseaudio
   - --share=network
+  - --device=dri
   - --filesystem=home
+  - --filesystem=xdg-documents
   - --filesystem=xdg-download
-
-build-options:
-  append-path: /usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node20/bin
-  env:
-    npm_config_cache: /run/build/arkrith/flatpak-node/npm-cache
-    npm_config_offline: 'true'
-    CARGO_NET_OFFLINE: 'true'
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.FileManager1
+  - --env=ELECTRON_TRASH=gio
 
 modules:
-  - name: arkrith
+  - name: modrinth-code
     buildsystem: simple
     build-commands:
-      # Install pnpm and turbo
-      - npm install -g pnpm turbo
-      
-      # Install dependencies (turbo will handle caching)
-      - pnpm install --frozen-lockfile
-      
-      # Build using turbo (similar to Modrinth's setup)
-      - pnpm turbo build
-      
-      # Install Tauri CLI and build
-      - cargo install tauri-cli --locked
-      - pnpm tauri build
-      
-      # Install the binary
-      - install -Dm755 src-tauri/target/release/arkrith /app/bin/arkrith
+      - npm ci --cache .npm --prefer-offline
+      - npm run build
+      - npm run electron:pack
+      - install -Dm755 dist_electron/linux-unpacked/modrinth-code /app/bin/modrinth-code
+      - install -Dm644 dist_electron/linux-unpacked/resources/app.asar /app/bin/resources/app.asar
+      - install -Dm644 build/icon.png /app/share/icons/hicolor/512x512/apps/com.yourname.modrinth-code.png
+      - install -Dm644 com.yourname.modrinth-code.desktop /app/share/applications/com.yourname.modrinth-code.desktop
+      - install -Dm644 com.yourname.modrinth-code.metainfo.xml /app/share/metainfo/com.yourname.modrinth-code.metainfo.xml
     sources:
-      - type: dir
-        path: .
-        skip:
-          - .git
-          - target
-          - node_modules
-          - dist
-          - .turbo
+      - type: git
+        url: https://github.com/yourusername/your-fork-name.git
+        branch: main
+      - type: file
+        path: com.yourname.modrinth-code.desktop
+      - type: file
+        path: com.yourname.modrinth-code.metainfo.xml
+    modules:
+      - name: nodejs
+        buildsystem: simple
+        build-commands:
+          - mkdir -p /app/bin
+          - cp -r * /app/lib/nodejs/
+          - ln -s /app/lib/nodejs/bin/node /app/bin/node
+          - ln -s /app/lib/nodejs/bin/npm /app/bin/npm
+        sources:
+          - type: archive
+            url: https://nodejs.org/dist/v18.17.0/node-v18.17.0-linux-x64.tar.xz
+            sha256: 5fda4e50e18987dd1133cae8e6403c6ea3a5c04f3bbcfa9d5c12d3e8e6c8e5b5
