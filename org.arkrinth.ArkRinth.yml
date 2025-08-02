@@ -40,15 +40,3 @@ modules:
         path: org.arkrinth.ArkRinth.desktop
       - type: file
         path: org.arkrinth.ArkRinth.metainfo.xml
-    modules:
-      - name: nodejs
-        buildsystem: simple
-        build-commands:
-          - mkdir -p /app/bin
-          - cp -r * /app/lib/nodejs/
-          - ln -s /app/lib/nodejs/bin/node /app/bin/node
-          - ln -s /app/lib/nodejs/bin/npm /app/bin/npm
-        sources:
-          - type: archive
-            url: https://nodejs.org/dist/v18.17.0/node-v18.17.0-linux-x64.tar.xz
-            sha256: f36facda28c4d5ce76b3a1b4344e688d29d9254943a47f2f1909b1a10acb1959
