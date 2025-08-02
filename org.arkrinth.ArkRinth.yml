@@ -4,7 +4,7 @@ runtime-version: '23.08'
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
 base-version: '23.08'
-command: modrinth-code
+command: arkrinth
 separate-locales: false
 
 finish-args:
@@ -22,25 +22,24 @@ finish-args:
   - --env=ELECTRON_TRASH=gio
 
 modules:
-  - name: modrinth-code
+  - name: arkrinth
     buildsystem: simple
     build-commands:
       - npm ci --cache .npm --prefer-offline
       - npm run build
       - npm run electron:pack
-      - install -Dm755 dist_electron/linux-unpacked/modrinth-code /app/bin/modrinth-code
+      - install -Dm755 dist_electron/linux-unpacked/arkrinth /app/bin/arkrinth
       - install -Dm644 dist_electron/linux-unpacked/resources/app.asar /app/bin/resources/app.asar
-      - install -Dm644 build/icon.png /app/share/icons/hicolor/512x512/apps/com.yourname.modrinth-code.png
-      - install -Dm644 com.yourname.modrinth-code.desktop /app/share/applications/com.yourname.modrinth-code.desktop
-      - install -Dm644 com.yourname.modrinth-code.metainfo.xml /app/share/metainfo/com.yourname.modrinth-code.metainfo.xml
+      - install -Dm644 build/icon.png /app/share/icons/hicolor/512x512/apps/org.arkrinth.ArkRinth.png
+      - install -Dm644 org.arkrinth.ArkRinth.desktop /app/share/applications/org.arkrinth.ArkRinth.desktop
+      - install -Dm644 org.arkrinth.ArkRinth.metainfo.xml /app/share/metainfo/org.arkrinth.ArkRinth.metainfo.xml
     sources:
-      - type: git
-        url: https://github.com/yourusername/your-fork-name.git
-        branch: main
+      - type: dir
+        path: .
       - type: file
-        path: com.yourname.modrinth-code.desktop
+        path: org.arkrinth.ArkRinth.desktop
       - type: file
-        path: com.yourname.modrinth-code.metainfo.xml
+        path: org.arkrinth.ArkRinth.metainfo.xml
     modules:
       - name: nodejs
         buildsystem: simple
