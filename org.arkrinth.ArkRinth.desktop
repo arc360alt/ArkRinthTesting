@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=ArkRinth
+Comment=Minecraft Launcher
+Exec=modrinth-code %U
+Terminal=false
+Type=Application
+Icon=com.yourname.modrinth-code
+StartupWMClass=modrinth-code
+Categories=Development;IDE;
+Keywords=editor;development;minecraft;modding;
+MimeType=text/plain;text/x-chdr;text/x-csrc;text/x-c++hdr;text/x-c++src;text/x-java;text/x-dsrc;text/x-pascal;text/x-perl;text/x-python;application/x-php;application/x-httpd-php3;application/x-httpd-php4;application/x-httpd-php5;application/javascript;application/json;text/css;text/html;text/xml;application/xml;application/xhtml+xml;
