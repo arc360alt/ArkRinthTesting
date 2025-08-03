@@ -38,7 +38,7 @@ modules:
   - name: arkrinth
     buildsystem: simple
     build-commands:
-      - npm ci --cache .npm --prefer-offline
+      - npm ci --cache .npm --prefer-offline --registry https://registry.npmjs.org/ --maxsockets 1
       - npm run build
       - npm run electron:pack
       - install -Dm755 dist_electron/linux-unpacked/arkrinth /app/bin/arkrinth
