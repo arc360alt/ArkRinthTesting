@@ -19,7 +19,7 @@ impl DiscordGuard {
     /// If it fails, it will still return a DiscordGuard, but the client will be unconnected
     pub fn init() -> crate::Result<DiscordGuard> {
         let dipc =
-            DiscordIpcClient::new("1396916855418916945").map_err(|e| {
+            DiscordIpcClient::new("1403548893396078743").map_err(|e| {
                 crate::ErrorKind::OtherError(format!(
                     "Could not create Discord client {e}",
                 ))
@@ -81,7 +81,7 @@ impl DiscordGuard {
             .assets(
                 Assets::new()
                     .large_image("migurinth_simple")
-                    .large_text("Migurinth Logo"),
+                    .large_text("ArkRinth Logo"),
             )
             .buttons(vec![Button::new("Download", "https://arc360hub.com.com/")]);
 
