@@ -80,10 +80,10 @@ impl DiscordGuard {
             .state(msg)
             .assets(
                 Assets::new()
-                    .large_image("arkrinth_logo")
+                    .large_image("migurinth_simple")
                     .large_text("ArkRinth Logo"),
             )
-            .buttons(vec![Button::new("Download", "https://arc360hub.com/")]);
+            .buttons(vec![Button::new("Download", "https://arc360hub.com.com/")]);
 
         // Attempt to set the activity
         // If the existing connection fails, attempt to reconnect and try again
