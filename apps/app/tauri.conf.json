@@ -39,7 +39,7 @@
         "depends": []
       },
       "appimage": {
-        "bundleMediaFramework": false,
+        "bundleMediaFramework": true,
         "excludedLibraries": [
           "libEGL.so*",
           "libGL.so*",
