@@ -26,11 +26,6 @@
         "depends": []
       }
     },
-    "linux": {
-      "deb": {
-        "depends": []
-      }
-    },
     "macOS": {
       "exceptionDomain": "",
       "signingIdentity": null,
@@ -40,7 +35,7 @@
     "resources": [],
     "copyright": "Copyright (c) 2025 Arc Rinth",
     "category": "DeveloperTool",
-    "shortDescription": "A Modrinth client",
-    "longDescription": "A modern Modrinth client built with Tauri."
+    "shortDescription": "A ArkRinth client",
+    "longDescription": "A modern ArkRinth client built with Tauri."
   }
 }
