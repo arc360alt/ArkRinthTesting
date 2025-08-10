@@ -2,14 +2,7 @@
 // ie: deep links or filepaths for .mrpacks
 fn main() {
     // Force software rendering for AppImage to fix EGL errors
-    #[cfg(all(target_os = "linux", not(debug_assertions)))]
-    {
-        std::env::set_var("LIBGL_ALWAYS_SOFTWARE", "1");
-        std::env::set_var("GALLIUM_DRIVER", "llvmpipe");
-        std::env::set_var("MESA_GL_VERSION_OVERRIDE", "3.3");
-        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
-        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-    }
+
 
     /*
         tracing is set basd on the environment variable RUST_LOG=xxx, depending on the amount of logs to show
