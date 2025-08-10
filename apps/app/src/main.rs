@@ -1,5 +1,10 @@
 // if Tauri app is called with arguments, then those arguments will be treated as commands
 // ie: deep links or filepaths for .mrpacks
+
+use tauri::{Manager, Listener};
+use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder};
+
+mod api;
 fn main() {
     // Force software rendering for AppImage to fix EGL errors
 
@@ -18,7 +23,6 @@ fn main() {
             RUST_LOG="theseus=trace" {run command}
 
     */
-    let _log_guard = theseus::start_logger();
 
     tracing::info!("Initialized tracing subscriber. Loading ArkRinth!");
 
