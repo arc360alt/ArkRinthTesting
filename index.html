@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ark Rinth</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f0f 70%, #000000 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+
+        .logo-container {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            box-shadow: 
+                0 0 60px rgba(99, 102, 241, 0.4),
+                0 0 100px rgba(99, 102, 241, 0.2),
+                inset 0 0 30px rgba(99, 102, 241, 0.1);
+            transition: all 0.3s ease;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+            box-shadow: 
+                0 0 80px rgba(99, 102, 241, 0.6),
+                0 0 120px rgba(99, 102, 241, 0.3),
+                inset 0 0 40px rgba(99, 102, 241, 0.2);
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 60px rgba(99, 102, 241, 0.4),
+                    0 0 100px rgba(99, 102, 241, 0.2),
+                    inset 0 0 30px rgba(99, 102, 241, 0.1);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 80px rgba(99, 102, 241, 0.6),
+                    0 0 120px rgba(99, 102, 241, 0.3),
+                    inset 0 0 40px rgba(99, 102, 241, 0.2);
+            }
+        }
+
+        .title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            font-style: italic;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+            animation: gradient 4s ease infinite, glow 2s ease-in-out infinite alternate;
+            letter-spacing: -0.02em;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3)); }
+            to { filter: drop-shadow(0 0 40px rgba(99, 102, 241, 0.6)); }
+        }
+
+        .tagline {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-weight: 500;
+            font-style: italic;
+            color: #e2e8f0;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            opacity: 0.9;
+        }
+
+        .cta-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-style: italic;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 10px 30px rgba(99, 102, 241, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .download-btn:hover::before {
+            left: 100%;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 
+                0 20px 40px rgba(99, 102, 241, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .download-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .version-info {
+            color: #94a3b8;
+            font-size: 1rem;
+            font-weight: 400;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        .source-code {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .source-code:hover {
+            color: #6366f1;
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .logo {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .logo-container {
+                margin-bottom: 2rem;
+            }
+            
+            .tagline {
+                margin-bottom: 2rem;
+            }
+            
+            .download-btn {
+                padding: 0.8rem 2rem;
+                font-size: 1.1rem;
+            }
+            
+            .source-code {
+                bottom: 1rem;
+                left: 1rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles"></div>
+    
+    <div class="container">
+        <div class="logo-container">
+            <img src="logo.png" alt="Ark Rinth Logo" class="logo">
+        </div>
+        
+        <h1 class="title">Ark Rinth</h1>
+        
+        <p class="tagline">
+            Modrinth but it doesn't spy on you.<br>
+            And its blue instead of green.
+        </p>
+        
+        <div class="cta-section">
+            <a href="#" class="download-btn">
+                Download
+            </a>
+            <div class="version-info">Newest Version: 1.2.0</div>
+        </div>
+    </div>
+    
+    <a href="#" class="source-code">Source Code</a>
+
+    <script>
+        // Create floating particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 4 + 1;
+            const startPos = Math.random() * 100;
+            const animationDuration = Math.random() * 10 + 15;
+            
+            particle.style.left = startPos + '%';
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.animationDuration = animationDuration + 's';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            
+            document.querySelector('.particles').appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, (animationDuration + 5) * 1000);
+        }
+        
+        // Create particles periodically
+        setInterval(createParticle, 500);
+        
+        // Create initial particles
+        for (let i = 0; i < 10; i++) {
+            setTimeout(createParticle, i * 100);
+        }
+    </script>
+</body>
+</html>
