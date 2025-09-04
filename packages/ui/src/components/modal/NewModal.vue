@@ -164,7 +164,7 @@ function handleKeyDown(event: KeyboardEvent) {
   z-index: 19;
   opacity: 0;
   transition: all 0.2s ease-out;
-  background: linear-gradient(to bottom, rgba(29, 48, 43, 0.52) 0%, rgba(14, 21, 26, 0.95) 100%);
+  background: linear-gradient(to bottom, rgba(29, 31, 48, 0.52) 0%, rgba(14, 15, 26, 0.95) 100%);
   //transform: translate(
   //    calc((-50vw + var(--_mouse-x, 50vw) * 1px) / 2),
   //    calc((-50vh + var(--_mouse-y, 50vh) * 1px) / 2)
