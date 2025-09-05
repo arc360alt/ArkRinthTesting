@@ -108,13 +108,34 @@ jobs:
 
       - name: ⚙️ Set application version
         shell: bash
-        env:
-          APP_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('{0}-canary+{1}.{2}', steps.get-version-info.outputs.latest-tag, steps.get-version-info.outputs.commit-count, steps.get-version-info.outputs.short-sha) }}
         run: |
+          git fetch --tags --force
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          COMMIT_COUNT=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          
+          # Ensure the latest tag has proper semver format (x.y.z)
+          CLEAN_TAG="${LATEST_TAG#v}"
+          if [[ ! "$CLEAN_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # If tag doesn't have patch version, add .0
+            if [[ "$CLEAN_TAG" =~ ^[0-9]+\.[0-9]+$ ]]; then
+              CLEAN_TAG="${CLEAN_TAG}.0"
+            else
+              CLEAN_TAG="1.0.0"
+            fi
+          fi
+          
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            APP_VERSION="$CLEAN_TAG"
+          else
+            # Use proper semver prerelease format
+            APP_VERSION="${CLEAN_TAG}-canary.${COMMIT_COUNT}.${SHORT_SHA}"
+          fi
+          
           echo "Setting application version to $APP_VERSION"
-          dasel put -f apps/app/Cargo.toml -t string -v "${APP_VERSION#v}" 'package.version'
-          dasel put -f packages/app-lib/Cargo.toml -t string -v "${APP_VERSION#v}" 'package.version'
-          dasel put -f apps/app-frontend/package.json -t string -v "${APP_VERSION#v}" 'version'
+          dasel put -f apps/app/Cargo.toml -t string -v "$APP_VERSION" 'package.version'
+          dasel put -f packages/app-lib/Cargo.toml -t string -v "$APP_VERSION" 'package.version'
+          dasel put -f apps/app-frontend/package.json -t string -v "$APP_VERSION" 'version'
 
       - name: 💨 Setup Turbo cache
         uses: rharkor/caching-for-turbo@v1.8
