@@ -108,12 +108,17 @@ jobs:
       - name: ⚙️ Set application version
         shell: bash
         env:
-          APP_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && format('{0}', github.ref_name) || format('{0}-canary+{1}.{2}', steps.get-version-info.outputs.latest-tag, steps.get-version-info.outputs.commit-count, steps.get-version-info.outputs.short-sha) }}
+          APP_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('{0}-canary.{1}.{2}', steps.get-version-info.outputs.latest-tag, steps.get-version-info.outputs.commit-count, steps.get-version-info.outputs.short-sha) }}
         run: |
           echo "Setting application version to $APP_VERSION"
-          dasel put -f apps/app/Cargo.toml -t string -v "${APP_VERSION#v}" 'package.version'
-          dasel put -f packages/app-lib/Cargo.toml -t string -v "${APP_VERSION#v}" 'package.version'
-          dasel put -f apps/app-frontend/package.json -t string -v "${APP_VERSION#v}" 'version'
+          # Remove 'v' prefix and ensure proper semver format
+          CLEAN_VERSION="${APP_VERSION#v}"
+          # Replace any '+' with '-' for better semver compatibility
+          CLEAN_VERSION="${CLEAN_VERSION//+/-}"
+          echo "Clean version: $CLEAN_VERSION"
+          dasel put -f apps/app/Cargo.toml -t string -v "$CLEAN_VERSION" 'package.version'
+          dasel put -f packages/app-lib/Cargo.toml -t string -v "$CLEAN_VERSION" 'package.version'
+          dasel put -f apps/app-frontend/package.json -t string -v "$CLEAN_VERSION" 'version'
 
       - name: 💨 Setup Turbo cache
         uses: rharkor/caching-for-turbo@v1.8
