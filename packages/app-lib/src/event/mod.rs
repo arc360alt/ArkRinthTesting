@@ -192,6 +192,7 @@ pub struct LoadingPayload {
 }
 
 #[derive(Serialize, Clone)]
+#[allow(dead_code)]
 pub struct OfflinePayload {
     pub offline: bool,
 }
