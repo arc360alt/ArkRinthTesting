@@ -78,7 +78,7 @@ jobs:
             libxcb-xfixes0-dev \
             libxkbcommon-dev \
             libgtk-3-dev \
-            rpm
+        
 
       - name: ⚙️ Grant execute permissions to gradlew
         if: startsWith(matrix.platform, 'ubuntu') || startsWith(matrix.platform, 'macos')
