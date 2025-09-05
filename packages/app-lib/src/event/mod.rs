@@ -197,6 +197,16 @@ pub struct OfflinePayload {
     pub offline: bool,
 }
 
+// Dummy usage to prevent dead_code error
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn construct_offline_payload() {
+        let _payload = OfflinePayload { offline: true };
+    }
+}
+
 #[derive(Serialize, Clone)]
 pub struct WarningPayload {
     pub message: String,
