@@ -9,3 +9,5 @@ Works fine whtih the included DMG
 - > Fedora works fine whith the included RPM
 - > All other distros do not work, the Appimage is broken, we are currently investigating a way to fix it.
 - > Flatpaks are not included just yet
+
+#### This is a fork of MiguRinth, Which is also a fork of Modrinth.
