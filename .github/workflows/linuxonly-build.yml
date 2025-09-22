@@ -1,0 +1,68 @@
+name: ArkRinth Linux Build
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - 'apps/app/**'
+      - 'apps/app-frontend/**'
+      - 'packages/**'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    name: Build Linux App
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 📥 Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🧰 Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: x86_64-unknown-linux-gnu
+          cache-key: linux-rust-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🧰 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: 🧰 Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 🧰 Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -yq \
+            build-essential pkg-config \
+            libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libayatana-appindicator3-dev librsvg2-dev \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev \
+            libgdk-pixbuf2.0-dev libpango1.0-dev \
+            libharfbuzz-dev libatk1.0-dev libcairo2-dev
+
+      - name: 🧰 Install dependencies
+        run: pnpm install
+
+      - name: 🔨 Build Linux AppImage
+        run: |
+          # Optional: Set WebKit exec path for AppImage runtime
+          export WEBKIT_EXEC_PATH="$(pwd)/target/release/bundle/squashfs-root/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1"
+          pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
+        env:
+          WEBKIT_DISABLE_COMPOSITING_MODE: 0
+
+      - name: 📤 Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArkRinth AppImage
+          path: target/release/bundle/appimage/*.AppImage
