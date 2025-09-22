@@ -18,14 +18,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 🧰 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: 🧰 Setup Node.js & pnpm
+        uses: pnpm/action-setup@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
 
-      - name: 🧰 Install pnpm
-        run: npm install -g pnpm
 
       - name: 🧰 Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
