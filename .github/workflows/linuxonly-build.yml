@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      
+
       - name: 🧰 Install pnpm
         run: npm install -g pnpm
 
@@ -49,7 +49,7 @@ jobs:
             libayatana-appindicator3-dev librsvg2-dev libsoup-3.0-dev \
             libjavascriptcoregtk-4.1-dev libgdk-pixbuf2.0-dev libpango1.0-dev \
             libharfbuzz-dev libatk1.0-dev libcairo2-dev libgl1-mesa-glx \
-            libgles2-mesa-dev
+            libgles2-mesa-dev libegl1-mesa libgbm-dev
 
       - name: ⚙️ Make Gradle executable
         run: chmod +x ./packages/app-lib/java/gradlew
@@ -59,7 +59,7 @@ jobs:
           git fetch --tags --force
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.2.0")
           COMMIT_COUNT=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
           CLEAN_TAG="${LATEST_TAG#v}"
           if [[ ! "$CLEAN_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             if [[ "$CLEAN_TAG" =~ ^[0-9]+\.[0-9]+$ ]]; then
@@ -81,11 +81,14 @@ jobs:
       - name: 💨 Install dependencies
         run: pnpm install
 
-      - name: 🔨 Build Linux app (all targets)
-        env:
-          WEBKIT_DISABLE_COMPOSITING_MODE: 0   # Enable GPU acceleration
-          LIBGL_ALWAYS_SOFTWARE: 0             # Prevent software rendering fallback
-        run: pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
+      - name: 🔨 Build Linux app (all targets, GPU forced)
+        run: |
+          export WEBKIT_DISABLE_COMPOSITING_MODE=0
+          export LIBGL_ALWAYS_SOFTWARE=0
+          export WEBKIT_USE_HARDWARE_ACCELERATION=1
+          # Debug GPU usage
+          glxinfo | grep "OpenGL renderer"
+          pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
 
       - name: 📤 Upload app bundles
         uses: actions/upload-artifact@v4
