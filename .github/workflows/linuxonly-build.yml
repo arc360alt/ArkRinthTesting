@@ -79,7 +79,7 @@ jobs:
         run: pnpm install
 
       - name: 🔨 Build Linux app
-        run: pnpm --filter=@modrinth/app run tauri build --release --config tauri-release.conf.json
+        run: pnpm --filter=@modrinth/app run tauri build -- --release --config tauri-release.conf.json
 
       - name: 📤 Upload app bundles
         uses: actions/upload-artifact@v4
