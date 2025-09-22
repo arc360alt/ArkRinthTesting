@@ -40,6 +40,7 @@
       },
       "appimage": {
         "bundleMediaFramework": true
+        "bundleGtk": true
       }
     },
     "fileAssociations": [
