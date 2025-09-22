@@ -54,6 +54,10 @@ jobs:
       - name: 🧰 Install dependencies
         run: pnpm install
 
+      - name: ⚙️ Grant execute permissions to gradlew
+        run: chmod +x ./packages/app-lib/java/gradlew
+
+
       - name: 🔨 Build Linux AppImage
         run: |
           # Optional: Set WebKit exec path for AppImage runtime
