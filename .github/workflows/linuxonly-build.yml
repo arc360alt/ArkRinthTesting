@@ -40,14 +40,13 @@ jobs:
           install-path: /usr/local/bin
 
       - name: 🧰 Install Linux build dependencies
+        if: startsWith(matrix.platform, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install -yq \
-            libwebkit2gtk-4.1-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            build-essential \
-            pkg-config
+            libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev \
+            libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev mesa-vulkan-drivers
+
 
       - name: ⚙️ Make Gradle executable
         run: chmod +x ./packages/app-lib/java/gradlew
@@ -79,8 +78,8 @@ jobs:
       - name: 💨 Install dependencies
         run: pnpm install
 
-      - name: 🔨 Build Linux app (AppImage + DEB + RPM)
-        run: pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
+      - name: 🔨 Build Linux app
+        run: pnpm --filter=@modrinth/app run tauri build --release --config tauri-release.conf.json
 
       - name: 📤 Upload app bundles
         uses: actions/upload-artifact@v4
