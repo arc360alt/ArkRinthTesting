@@ -37,7 +37,8 @@ jobs:
           cache: pnpm
 
       - name: 🧰 Install pnpm
-        uses: pnpm/action-setup@v4
+        run: npm install -g pnpm
+
 
       - name: 🧰 Install Linux build dependencies
         run: |
