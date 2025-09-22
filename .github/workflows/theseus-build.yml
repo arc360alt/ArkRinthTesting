@@ -61,7 +61,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-
+          
       - name: 🧰 Install Linux build dependencies
         if: startsWith(matrix.platform, 'ubuntu')
         run: |
@@ -79,7 +79,10 @@ jobs:
             libpango1.0-dev \
             libharfbuzz-dev \
             libatk1.0-dev \
-            libcairo2-dev
+            libcairo2-dev \
+            libegl1-mesa-dev \
+            libgl1-mesa-dev \
+            libgles2-mesa-dev
 
       - name: ⚙️ Grant execute permissions to gradlew
         if: startsWith(matrix.platform, 'ubuntu') || startsWith(matrix.platform, 'macos')
