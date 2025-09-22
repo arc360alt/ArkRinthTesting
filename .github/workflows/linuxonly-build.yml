@@ -1,44 +1,34 @@
-name: ArkRinth Linux Build
+name: ArkRinth Linux Build (Quick Test)
+
 on:
   push:
     branches:
       - main
     tags:
       - 'v*'
-    paths:
-      - 'apps/app/**'
-      - 'apps/app-frontend/**'
-      - 'packages/**'
   workflow_dispatch:
 
 jobs:
   build-linux:
-    name: Build Linux App
     runs-on: ubuntu-22.04
 
     steps:
-      - name: 📥 Check out code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🧰 Setup Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: x86_64-unknown-linux-gnu
-          cache-key: linux-rust-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: 🧰 Setup Node.js
+      - name: 🧰 Setup Node.js and pnpm
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      
-      - name: 🧰 Setup pnpm
-        uses: pnpm/action-setup@v4
+          cache: pnpm
+      - run: npm install -g pnpm
 
-
+      - name: 🧰 Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: x86_64-unknown-linux-gnu
 
       - name: 🧰 Install Linux build dependencies
         run: |
@@ -51,23 +41,47 @@ jobs:
             libgdk-pixbuf2.0-dev libpango1.0-dev \
             libharfbuzz-dev libatk1.0-dev libcairo2-dev
 
-      - name: 🧰 Install dependencies
-        run: pnpm install
-
-      - name: ⚙️ Grant execute permissions to gradlew
+      - name: ⚙️ Make Gradle executable
         run: chmod +x ./packages/app-lib/java/gradlew
 
-
-      - name: 🔨 Build Linux AppImage
+      - name: 🏷️ Set application version
         run: |
-          # Optional: Set WebKit exec path for AppImage runtime
-          export WEBKIT_EXEC_PATH="$(pwd)/target/release/bundle/squashfs-root/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1"
-          pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
-        env:
-          WEBKIT_DISABLE_COMPOSITING_MODE: 0
+          git fetch --tags --force
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.2.0")
+          COMMIT_COUNT=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          CLEAN_TAG="${LATEST_TAG#v}"
+          if [[ ! "$CLEAN_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            if [[ "$CLEAN_TAG" =~ ^[0-9]+\.[0-9]+$ ]]; then
+              CLEAN_TAG="${CLEAN_TAG}.0"
+            else
+              CLEAN_TAG="1.2.0"
+            fi
+          fi
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            APP_VERSION="$CLEAN_TAG"
+          else
+            APP_VERSION="${CLEAN_TAG}-canary.${COMMIT_COUNT}.${SHORT_SHA}"
+          fi
+          echo "Setting application version to $APP_VERSION"
+          dasel put -f apps/app/Cargo.toml -t string -v "$APP_VERSION" 'package.version'
+          dasel put -f packages/app-lib/Cargo.toml -t string -v "$APP_VERSION" 'package.version'
+          dasel put -f apps/app-frontend/package.json -t string -v "$APP_VERSION" 'version'
 
-      - name: 📤 Upload AppImage
+      - name: 💨 Install dependencies
+        run: pnpm install
+
+      - name: 🔨 Build Linux app (all targets)
+        run: |
+          # Disable any CPU-only mode that may have been set
+          export WEBKIT_DISABLE_COMPOSITING_MODE=0
+          pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
+
+      - name: 📤 Upload app bundles
         uses: actions/upload-artifact@v4
         with:
-          name: ArkRinth AppImage
-          path: target/release/bundle/appimage/*.AppImage
+          name: ArkRinth Linux Bundles
+          path: |
+            target/release/bundle/appimage/ArkRinth_*.AppImage*
+            target/release/bundle/deb/ArkRinth_*.deb*
+            target/release/bundle/rpm/ArkRinth-*.rpm*
