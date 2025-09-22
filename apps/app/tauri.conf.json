@@ -1,3 +1,4 @@
+
 {
   "$schema": "https://schema.tauri.app/config/2",
   "build": {
@@ -77,14 +78,7 @@
         "minWidth": 1100,
         "visible": true,
         "zoomHotkeysEnabled": false,
-        "decorations": false,
-        "hardwareAcceleration": true,
-        "webviewOptions": {
-          "linux": {
-            "hardwareAcceleration": true,
-            "additionalBrowserArgs": "--enable-gpu --enable-features=VaapiVideoDecoder --use-gl=desktop --enable-gpu-rasterization --ignore-gpu-blacklist"
-          }
-        }
+        "decorations": false
       }
     ],
     "security": {
