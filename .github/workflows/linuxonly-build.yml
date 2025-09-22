@@ -82,12 +82,10 @@ jobs:
         run: pnpm install
 
       - name: 🔨 Build Linux app (all targets)
-        run: |
-          # Disable any CPU-only mode that may have been set
-            env:
-              WEBKIT_DISABLE_COMPOSITING_MODE: 0   # <- Enable GPU acceleration
-              LIBGL_ALWAYS_SOFTWARE: 0             # <- Prevent software rendering fallback
-          pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
+        env:
+          WEBKIT_DISABLE_COMPOSITING_MODE: 0   # Enable GPU acceleration
+          LIBGL_ALWAYS_SOFTWARE: 0             # Prevent software rendering fallback
+        run: pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
 
       - name: 📤 Upload app bundles
         uses: actions/upload-artifact@v4
