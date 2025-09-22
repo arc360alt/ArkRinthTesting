@@ -155,7 +155,7 @@ jobs:
         run: pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
         if: startsWith(matrix.platform, 'ubuntu')
         env:
-          WEBKIT_DISABLE_COMPOSITING_MODE: 1
+          WEBKIT_DISABLE_COMPOSITING_MODE: 0
         # Removed TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD env variables
         # env:
         #   TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
