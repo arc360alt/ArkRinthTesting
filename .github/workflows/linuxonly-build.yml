@@ -26,12 +26,20 @@ jobs:
       - name: 🧰 Install pnpm
         run: npm install -g pnpm
 
-
-
       - name: 🧰 Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           target: x86_64-unknown-linux-gnu
+
+      - name: 🧰 Setup Dasel
+        uses: jaxxstorm/action-install-gh-release@v2.1.0
+        with:
+          repo: TomWright/dasel
+          tag: v2.8.1
+          extension-matching: disable
+          rename-to: dasel
+          chmod: 0755
+          install-path: /usr/local/bin
 
       - name: 🧰 Install Linux build dependencies
         run: |
