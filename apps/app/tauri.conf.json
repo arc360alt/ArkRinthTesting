@@ -39,8 +39,7 @@
         "depends": []
       },
       "appimage": {
-        "bundleMediaFramework": true,
-        "bundleGtk": true
+        "bundleMediaFramework": true
       }
     },
     "fileAssociations": [
