@@ -141,6 +141,46 @@ fn restart_app(app: tauri::AppHandle) {
     app.restart();
 }
 
+// Enable GPU acceleration on Linux before Tauri starts
+#[cfg(target_os = "linux")]
+fn setup_linux_gpu_acceleration() {
+    // Force hardware acceleration for WebKit
+    env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "0");
+    env::set_var("WEBKIT_FORCE_ACCELERATED_COMPOSITING", "1");
+    env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "0");
+    
+    // GTK4/GDK rendering settings
+    env::set_var("GDK_RENDERING", "gl");
+    env::set_var("GSK_RENDERER", "gl");
+    
+    // Check for NVIDIA drivers and enable if available
+    let nvidia_paths = [
+        "/usr/lib/x86_64-linux-gnu/libnvidia-gl-535.so",
+        "/usr/lib/x86_64-linux-gnu/libnvidia-gl-525.so",
+        "/usr/lib/x86_64-linux-gnu/libnvidia-gl-515.so",
+        "/usr/lib/libnvidia-gl.so.1",
+        "/usr/lib64/libnvidia-gl.so.1",
+        "/usr/lib/libnvidia-gl.so",
+        "/usr/lib64/libnvidia-gl.so",
+    ];
+    
+    for nvidia_path in nvidia_paths.iter() {
+        if std::path::Path::new(nvidia_path).exists() {
+            tracing::info!("NVIDIA GPU detected, enabling NVIDIA-specific acceleration");
+            env::set_var("__NV_PRIME_RENDER_OFFLOAD", "1");
+            env::set_var("__GLX_VENDOR_LIBRARY_NAME", "nvidia");
+            env::set_var("__GL_SYNC_TO_VBLANK", "0");
+            env::set_var("__GL_THREADED_OPTIMIZATIONS", "1");
+            break;
+        }
+    }
+    
+    // Additional Mesa/OpenGL optimizations for any GPU
+    env::set_var("MESA_GL_VERSION_OVERRIDE", "4.6");
+    
+    tracing::info!("Linux GPU acceleration settings applied");
+}
+
 // if Tauri app is called with arguments, then those arguments will be treated as commands
 // ie: deep links or filepaths for .mrpacks
 fn main() {
@@ -161,6 +201,10 @@ fn main() {
     let _log_guard = theseus::start_logger();
 
     tracing::info!("Initialized tracing subscriber. Loading ArkRinth!");
+
+    // Enable GPU acceleration on Linux BEFORE creating Tauri builder
+    #[cfg(target_os = "linux")]
+    setup_linux_gpu_acceleration();
 
     let mut builder = tauri::Builder::default();
 
