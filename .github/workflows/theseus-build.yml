@@ -1,109 +1,185 @@
+name: ArkRinth build
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - .github/workflows/theseus-build.yml
+      - 'apps/app/**'
+      - 'apps/app-frontend/**'
+      - 'packages/app-lib/**'
+      - 'packages/app-macros/**'
+      - 'packages/assets/**'
+      - 'packages/ui/**'
+      - 'packages/utils/**'
+  workflow_dispatch:
+  workflow_call:
 
-{
-  "$schema": "https://schema.tauri.app/config/2",
-  "build": {
-    "beforeDevCommand": "pnpm turbo run dev --filter=@modrinth/app-frontend",
-    "beforeBuildCommand": "pnpm turbo run build --filter=@modrinth/app-frontend",
-    "frontendDist": "../app-frontend/dist",
-    "devUrl": "http://localhost:1420"
-  },
-  "bundle": {
-    "active": true,
-    "category": "Game",
-    "copyright": "",
-    "targets": [
-      "nsis",
-      "dmg",
-      "appimage",
-      "deb",
-      "app"
-    ],
-    "externalBin": [],
-    "icon": ["icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
-    "windows": {
-      "nsis": {
-        "installMode": "perMachine",
-        "installerHooks": "./nsis/hooks.nsi"
-      }
-    },
-    "longDescription": "",
-    "macOS": {
-      "entitlements": "App.entitlements",
-      "exceptionDomain": "",
-      "frameworks": [],
-      "providerShortName": null,
-      "signingIdentity": null
-    },
-    "shortDescription": "",
-    "linux": {
-      "deb": {
-        "depends": []
-      },
-      "appimage": {
-        "bundleMediaFramework": true
-      }
-    },
-    "fileAssociations": [
-      {
-        "ext": ["mrpack"],
-        "mimeType": "application/x-modrinth-modpack+zip"
-      }
-    ]
-  },
-  "productName": "ArkRinth",
-  "version": "../app-frontend/package.json",
-  "mainBinaryName": "ArkRinth",
-  "identifier": "ArkRinth",
-  "plugins": {
-    "deep-link": {
-      "desktop": {
-        "schemes": ["modrinth"]
-      },
-      "mobile": []
-    }
-  },
-  "app": {
-    "withGlobalTauri": false,
-    "macOSPrivateApi": true,
-    "windows": [
-      {
-        "titleBarStyle": "Overlay",
-        "hiddenTitle": true,
-        "fullscreen": false,
-        "height": 800,
-        "resizable": true,
-        "title": "ArkRinth",
-        "width": 1280,
-        "minHeight": 700,
-        "minWidth": 1100,
-        "visible": true,
-        "zoomHotkeysEnabled": false,
-        "decorations": false
-      }
-    ],
-    "security": {
-      "assetProtocol": {
-        "scope": [
-          "$APPDATA/caches/icons/*",
-          "$APPCONFIG/caches/icons/*",
-          "$CONFIG/caches/icons/*",
-          "$APPDATA/profiles/*/saves/*/icon.png",
-          "$APPCONFIG/profiles/*/saves/*/icon.png",
-          "$CONFIG/profiles/*/saves/*/icon.png"
-        ],
-        "enable": true
-      },
-      "capabilities": ["ads", "core", "plugins"],
-      "csp": {
-        "default-src": "'self' customprotocol: asset:",
-        "connect-src": "ipc: http://ipc.localhost https://modrinth.com https://*.modrinth.com https://*.posthog.com https://*.sentry.io https://api.mclo.gs 'self' data: blob:",
-        "font-src": ["https://cdn-raw.modrinth.com/fonts/"],
-        "img-src": "https: 'unsafe-inline' 'self' asset: http://asset.localhost http://textures.minecraft.net blob: data:",
-        "style-src": "'unsafe-inline' 'self'",
-        "script-src": "https://*.posthog.com 'self'",
-        "frame-src": "https://www.youtube.com https://www.youtube-nocookie.com https://discord.com 'self'",
-        "media-src": "https://*.githubusercontent.com"
-      }
-    }
-  }
-}
+jobs:
+  build:
+    name: Build
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, windows-latest, ubuntu-22.04]
+        include:
+          - platform: macos-latest
+            artifact-target-name: universal-apple-darwin
+          - platform: windows-latest
+            artifact-target-name: x86_64-pc-windows-msvc
+          - platform: ubuntu-22.04
+            artifact-target-name: x86_64-unknown-linux-gnu
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: 📥 Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🧰 Setup Java for Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🧰 Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          rustflags: ''
+          target: ${{ startsWith(matrix.platform, 'macos') && 'x86_64-apple-darwin' || '' }}
+          cache-key: ${{ matrix.platform }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🧰 Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 🧰 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: 🧰 Install Linux build dependencies
+        if: startsWith(matrix.platform, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -yq \
+            build-essential \
+            pkg-config \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libsoup-3.0-dev \
+            libjavascriptcoregtk-4.1-dev \
+            libgdk-pixbuf2.0-dev \
+            libpango1.0-dev \
+            libharfbuzz-dev \
+            libatk1.0-dev \
+            libcairo2-dev
+
+      - name: ⚙️ Grant execute permissions to gradlew
+        if: startsWith(matrix.platform, 'ubuntu') || startsWith(matrix.platform, 'macos')
+        run: chmod +x ./packages/app-lib/java/gradlew
+
+      - name: 🧰 Setup Dasel
+        uses: jaxxstorm/action-install-gh-release@v2.1.0
+        with:
+          repo: TomWright/dasel
+          tag: v2.8.1
+          extension-matching: disable
+          rename-to: ${{ startsWith(matrix.platform, 'windows') && 'dasel.exe' || 'dasel' }}
+          chmod: 0755
+
+      - name: 🏷️ Get version info
+        id: get-version-info
+        shell: bash
+        run: |
+          git fetch --tags --force
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          COMMIT_COUNT=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "latest-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "commit-count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          echo "short-sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: ⚙️ Set application version
+        shell: bash
+        run: |
+          git fetch --tags --force
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.2.0")
+          COMMIT_COUNT=$(git rev-list --count ${LATEST_TAG}..HEAD 2>/dev/null || echo "0")
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          
+          # Ensure the latest tag has proper semver format (x.y.z)
+          CLEAN_TAG="${LATEST_TAG#v}"
+          if [[ ! "$CLEAN_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # If tag doesn't have patch version, add .0
+            if [[ "$CLEAN_TAG" =~ ^[0-9]+\.[0-9]+$ ]]; then
+              CLEAN_TAG="${CLEAN_TAG}.0"
+            else
+              CLEAN_TAG="1.2.0"
+            fi
+          fi
+          
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            APP_VERSION="$CLEAN_TAG"
+          else
+            # Use proper semver prerelease format
+            APP_VERSION="${CLEAN_TAG}-canary.${COMMIT_COUNT}.${SHORT_SHA}"
+          fi
+          
+          echo "Setting application version to $APP_VERSION"
+          dasel put -f apps/app/Cargo.toml -t string -v "$APP_VERSION" 'package.version'
+          dasel put -f packages/app-lib/Cargo.toml -t string -v "$APP_VERSION" 'package.version'
+          dasel put -f apps/app-frontend/package.json -t string -v "$APP_VERSION" 'version'
+
+      - name: 💨 Setup Turbo cache
+        uses: rharkor/caching-for-turbo@v1.8
+
+      - name: 🧰 Install dependencies
+        run: pnpm install
+
+      - name: 🔨 Build macOS app
+        run: pnpm --filter=@modrinth/app run tauri build --target universal-apple-darwin --config tauri-release.conf.json
+        if: startsWith(matrix.platform, 'macos')
+        # Removed TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD env variables
+        # env:
+        #   TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+        #   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+
+      - name: 🔨 Build Linux app
+        run: pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json
+        if: startsWith(matrix.platform, 'ubuntu')
+        env:
+          WEBKIT_DISABLE_COMPOSITING_MODE: 0
+        # Removed TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD env variables
+        # env:
+        #   TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+        #   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+
+      - name: 🔨 Build Windows app
+        run: |
+          $env:JAVA_HOME = "$env:JAVA_HOME_11_X64"
+          pnpm --filter=@modrinth/app run tauri build --config tauri-release.conf.json --verbose --bundles 'nsis,updater'
+        if: startsWith(matrix.platform, 'windows')
+        # Removed TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD env variables
+        # env:
+        #   TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+        #   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+
+      - name: 📤 Upload app bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: App bundle (${{ matrix.artifact-target-name }})
+          path: |
+            target/release/bundle/appimage/ArkRinth_*.AppImage*
+            target/release/bundle/deb/ArkRinth_*.deb*
+            target/release/bundle/rpm/ArkRinth-*.rpm*
+            target/universal-apple-darwin/release/bundle/macos/ArkRinth_.app.tar.gz*
+            target/universal-apple-darwin/release/bundle/dmg/ArkRinth_*.dmg*
+            target/release/bundle/nsis/ArkRinth_*-setup.exe*
+            target/release/bundle/nsis/ArkRinth_*-setup.nsis.zip*
