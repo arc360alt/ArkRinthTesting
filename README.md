@@ -7,8 +7,10 @@ Works fine whtih the included DMG
 - Linux
 - > Debian works fine whith the included DEB
 - > Fedora works fine whith the included RPM
-- > All other distros do not work, the Appimage is broken, we are currently investigating a way to fix it.
-- > Flatpaks are not included just yet
+- > All other distros now do work becuase we now have a working appimage.
 
 #### This is a fork of MiguRinth, Which is also a fork of Modrinth.
 #### ArkRinth is an independent fork and is not affiliated with or endorsed by Modrinth
+
+## Current bugs:
+- All of the linux builds run at 10 FPS depending on your system, and dont even run with the appimage if your using arch.
