@@ -14,6 +14,113 @@ mod error;
 #[cfg(target_os = "macos")]
 mod macos;
 
+// GPU detection and performance optimization
+#[tauri::command]
+async fn detect_gpu_and_optimize() -> api::Result<String> {
+    #[cfg(target_os = "linux")]
+    {
+        use std::process::Command;
+        
+        let output = Command::new("lspci")
+            .output()
+            .map_err(|_| theseus::Error::from(theseus::ErrorKind::OtherError("Could not detect GPU".to_string())))?;
+        
+        let lspci_output = String::from_utf8_lossy(&output.stdout).to_lowercase();
+        
+        let gpu_info = if lspci_output.contains("nvidia") {
+            "nvidia"
+        } else if lspci_output.contains("amd") || lspci_output.contains("ati") {
+            "amd" 
+        } else if lspci_output.contains("intel") {
+            "intel"
+        } else {
+            "unknown"
+        };
+        
+        tracing::info!("Detected GPU: {}", gpu_info);
+        Ok(gpu_info.to_string())
+    }
+    
+    #[cfg(not(target_os = "linux"))]
+    Ok("unknown".to_string())
+}
+
+// Apply WebView performance optimizations
+#[tauri::command]
+async fn apply_webview_optimizations(window: tauri::Window, gpu_type: String) -> api::Result<()> {
+    let optimization_script = match gpu_type.as_str() {
+        "nvidia" => r#"
+            // NVIDIA-specific optimizations
+            console.log('Applying NVIDIA GPU optimizations');
+            
+            // Force hardware acceleration
+            document.body.style.transform = 'translateZ(0)';
+            document.body.style.willChange = 'transform';
+            document.body.style.backfaceVisibility = 'hidden';
+            
+            // Optimize rendering pipeline
+            document.body.style.webkitTransform = 'translateZ(0)';
+            document.body.style.webkitBackfaceVisibility = 'hidden';
+            
+            // Test WebGL
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+            if (gl) {
+                console.log('✅ WebGL available - NVIDIA GPU:', gl.getParameter(gl.RENDERER));
+                
+                // Force GPU context
+                const ext = gl.getExtension('WEBGL_debug_renderer_info');
+                if (ext) {
+                    console.log('🎮 GPU Renderer:', gl.getParameter(ext.UNMASKED_RENDERER_WEBGL));
+                }
+            } else {
+                console.error('❌ WebGL not available - performance will be poor');
+            }
+        "#,
+        "amd" => r#"
+            // AMD-specific optimizations  
+            console.log('Applying AMD GPU optimizations');
+            
+            // Force hardware acceleration with AMD-friendly settings
+            document.body.style.transform = 'translateZ(0)';
+            document.body.style.willChange = 'transform';
+            
+            // Test WebGL with AMD considerations
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+            if (gl) {
+                console.log('✅ WebGL available - AMD GPU:', gl.getParameter(gl.RENDERER));
+            } else {
+                console.error('❌ WebGL not available - this may cause the 10fps issue');
+                // Fallback optimizations for software rendering
+                document.body.style.imageRendering = 'optimizeSpeed';
+            }
+        "#,
+        _ => r#"
+            // Generic optimizations
+            console.log('Applying generic GPU optimizations');
+            document.body.style.transform = 'translateZ(0)';
+            document.body.style.willChange = 'transform';
+            
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+            if (gl) {
+                console.log('✅ WebGL available:', gl.getParameter(gl.RENDERER));
+            } else {
+                console.error('❌ WebGL not available');
+            }
+        "#
+    };
+    
+    window.eval(optimization_script).map_err(|e| {
+        theseus::Error::from(theseus::ErrorKind::OtherError(format!(
+            "Failed to apply WebView optimizations: {e}"
+        )))
+    })?;
+    
+    Ok(())
+}
+
 // Should be called in launcher initialization
 #[tracing::instrument(skip_all)]
 #[tauri::command]
@@ -117,6 +224,20 @@ fn show_window(app: tauri::AppHandle) {
         panic!("cannot display application window")
     } else {
         let _ = win.set_focus();
+        
+        // Apply performance optimizations after window is shown
+        let win_clone = win.clone();
+        tauri::async_runtime::spawn(async move {
+            // Small delay to ensure window is fully loaded
+            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+            
+            // Detect GPU and apply optimizations
+            if let Ok(gpu_type) = detect_gpu_and_optimize().await {
+                if let Err(e) = apply_webview_optimizations(win_clone, gpu_type).await {
+                    tracing::warn!("Failed to apply WebView optimizations: {}", e);
+                }
+            }
+        });
     }
 }
 
@@ -194,6 +315,37 @@ fn main() {
                 .build(),
         )
         .setup(|app| {
+            // Linux-specific WebView performance settings
+            #[cfg(target_os = "linux")]
+            {
+                // Set environment variables for WebView performance
+                env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "0");
+                env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "0");
+                
+                // GPU-specific environment variables
+                use std::process::Command;
+                
+                if let Ok(output) = Command::new("lspci").output() {
+                    let lspci_output = String::from_utf8_lossy(&output.stdout).to_lowercase();
+                    
+                    if lspci_output.contains("nvidia") {
+                        tracing::info!("NVIDIA GPU detected - setting NVIDIA optimizations");
+                        env::set_var("__GL_THREADED_OPTIMIZATIONS", "1");
+                        env::set_var("__GL_SYNC_TO_VBLANK", "1");
+                    } else if lspci_output.contains("amd") || lspci_output.contains("ati") {
+                        tracing::info!("AMD GPU detected - setting AMD optimizations");
+                        env::set_var("MESA_GL_VERSION_OVERRIDE", "4.5");
+                        env::set_var("MESA_GLSL_VERSION_OVERRIDE", "450");
+                    }
+                }
+                
+                // Force X11 backend if on Wayland (for compatibility)
+                if env::var("XDG_SESSION_TYPE").unwrap_or_default() == "wayland" {
+                    tracing::info!("Wayland detected - forcing X11 backend for compatibility");
+                    env::set_var("GDK_BACKEND", "x11");
+                }
+            }
+
             #[cfg(target_os = "macos")]
             {
                 let payload = macos::deep_link::get_or_init_payload(app);
@@ -267,6 +419,8 @@ fn main() {
             toggle_decorations,
             show_window,
             restart_app,
+            detect_gpu_and_optimize,
+            apply_webview_optimizations,
         ]);
 
     tracing::info!("Initializing app...");
