@@ -11,3 +11,4 @@ Works fine whtih the included DMG
 - > Flatpaks are not included just yet
 
 #### This is a fork of MiguRinth, Which is also a fork of Modrinth.
+#### ArkRinth is an independent fork and is not affiliated with or endorsed by Modrinth
